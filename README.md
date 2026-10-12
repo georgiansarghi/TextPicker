@@ -1,6 +1,6 @@
 # TextOCR: Apple Silicon OCR prototype and benchmarks
 
-**The first prototype is installed at `~/Applications/TextOCR.app`.** Capture with **⌘⇧2**; MLX Small is the default and models can be changed from the menu bar. Approve Screen Recording on first use. See **[app/TESTING.md](app/TESTING.md)** for the testing checklist and **[app/README.md](app/README.md)** for implementation/build details.
+**The first prototype is installed at `~/Applications/TextOCR.app`.** Capture with **⌘⇧2**; MLX Small is the default and models can be changed from the menu bar. Enable Screen Recording and Accessibility on first use. The default input-interception path is designed to preserve open menus without activating TextOCR; no separate menu mode is needed. See **[app/TESTING.md](app/TESTING.md)** for the testing checklist and **[app/README.md](app/README.md)** for implementation/build details.
 
 The rest of this document covers the preceding research and reproducible local benchmarks. Vision worked in those initial measurements but later stalled again during integration; the prototype labels its Vision modes experimental and uses independent MLX by default.
 
