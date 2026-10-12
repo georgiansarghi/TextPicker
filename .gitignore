@@ -1,0 +1,10 @@
+.venv/
+.venv-mlx/
+.cache/
+__pycache__/
+benchmark/models/
+benchmark/vision
+benchmark/render
+vendor/
+app/build/
+.DS_Store
