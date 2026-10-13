@@ -11,4 +11,7 @@ benchmark/vision
 benchmark/render
 vendor/
 app/build/
+app/models/
 .DS_Store
+# Local installation settings are preserved on disk, not published with evidence.
+app/**/preferences-*.plist

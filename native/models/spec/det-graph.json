@@ -1,0 +1,2679 @@
+{
+  "type": "DetectionModel",
+  "attrs": {},
+  "weights": {},
+  "children": {
+    "backbone": {
+      "type": "PPLCNetV4Det",
+      "attrs": {},
+      "weights": {},
+      "children": {
+        "encoder": {
+          "type": "Encoder",
+          "attrs": {
+            "_depth": 4
+          },
+          "weights": {},
+          "children": {
+            "convolution": {
+              "type": "StemBlock",
+              "attrs": {},
+              "weights": {},
+              "children": {
+                "stem1": {
+                  "type": "ConvBNAct",
+                  "attrs": {
+                    "dynamic_same_padding": false,
+                    "kernel_size": [
+                      3,
+                      3
+                    ],
+                    "stride": [
+                      2,
+                      2
+                    ]
+                  },
+                  "weights": {},
+                  "children": {
+                    "conv": {
+                      "type": "Conv2d",
+                      "attrs": {
+                        "stride": [
+                          2,
+                          2
+                        ],
+                        "padding": [
+                          1,
+                          1
+                        ],
+                        "groups": 1,
+                        "dilation": 1
+                      },
+                      "weights": {
+                        "weight": "backbone.encoder.convolution.stem1.conv.weight",
+                        "bias": "backbone.encoder.convolution.stem1.conv.bias"
+                      },
+                      "children": {}
+                    },
+                    "act": {
+                      "type": "ReLU",
+                      "attrs": {},
+                      "weights": {},
+                      "children": {}
+                    }
+                  }
+                },
+                "stem2a": {
+                  "type": "ConvBNAct",
+                  "attrs": {
+                    "dynamic_same_padding": true,
+                    "kernel_size": [
+                      2,
+                      2
+                    ],
+                    "stride": [
+                      1,
+                      1
+                    ]
+                  },
+                  "weights": {},
+                  "children": {
+                    "conv": {
+                      "type": "Conv2d",
+                      "attrs": {
+                        "stride": [
+                          1,
+                          1
+                        ],
+                        "padding": [
+                          0,
+                          0
+                        ],
+                        "groups": 1,
+                        "dilation": 1
+                      },
+                      "weights": {
+                        "weight": "backbone.encoder.convolution.stem2a.conv.weight",
+                        "bias": "backbone.encoder.convolution.stem2a.conv.bias"
+                      },
+                      "children": {}
+                    },
+                    "act": {
+                      "type": "ReLU",
+                      "attrs": {},
+                      "weights": {},
+                      "children": {}
+                    }
+                  }
+                },
+                "stem2b": {
+                  "type": "ConvBNAct",
+                  "attrs": {
+                    "dynamic_same_padding": true,
+                    "kernel_size": [
+                      2,
+                      2
+                    ],
+                    "stride": [
+                      1,
+                      1
+                    ]
+                  },
+                  "weights": {},
+                  "children": {
+                    "conv": {
+                      "type": "Conv2d",
+                      "attrs": {
+                        "stride": [
+                          1,
+                          1
+                        ],
+                        "padding": [
+                          0,
+                          0
+                        ],
+                        "groups": 1,
+                        "dilation": 1
+                      },
+                      "weights": {
+                        "weight": "backbone.encoder.convolution.stem2b.conv.weight",
+                        "bias": "backbone.encoder.convolution.stem2b.conv.bias"
+                      },
+                      "children": {}
+                    },
+                    "act": {
+                      "type": "ReLU",
+                      "attrs": {},
+                      "weights": {},
+                      "children": {}
+                    }
+                  }
+                },
+                "stem3": {
+                  "type": "ConvBNAct",
+                  "attrs": {
+                    "dynamic_same_padding": false,
+                    "kernel_size": [
+                      3,
+                      3
+                    ],
+                    "stride": [
+                      2,
+                      2
+                    ]
+                  },
+                  "weights": {},
+                  "children": {
+                    "conv": {
+                      "type": "Conv2d",
+                      "attrs": {
+                        "stride": [
+                          2,
+                          2
+                        ],
+                        "padding": [
+                          1,
+                          1
+                        ],
+                        "groups": 1,
+                        "dilation": 1
+                      },
+                      "weights": {
+                        "weight": "backbone.encoder.convolution.stem3.conv.weight",
+                        "bias": "backbone.encoder.convolution.stem3.conv.bias"
+                      },
+                      "children": {}
+                    },
+                    "act": {
+                      "type": "ReLU",
+                      "attrs": {},
+                      "weights": {},
+                      "children": {}
+                    }
+                  }
+                },
+                "stem4": {
+                  "type": "ConvBNAct",
+                  "attrs": {
+                    "dynamic_same_padding": false,
+                    "kernel_size": [
+                      1,
+                      1
+                    ],
+                    "stride": [
+                      1,
+                      1
+                    ]
+                  },
+                  "weights": {},
+                  "children": {
+                    "conv": {
+                      "type": "Conv2d",
+                      "attrs": {
+                        "stride": [
+                          1,
+                          1
+                        ],
+                        "padding": [
+                          0,
+                          0
+                        ],
+                        "groups": 1,
+                        "dilation": 1
+                      },
+                      "weights": {
+                        "weight": "backbone.encoder.convolution.stem4.conv.weight",
+                        "bias": "backbone.encoder.convolution.stem4.conv.bias"
+                      },
+                      "children": {}
+                    },
+                    "act": {
+                      "type": "ReLU",
+                      "attrs": {},
+                      "weights": {},
+                      "children": {}
+                    }
+                  }
+                },
+                "pool": {
+                  "type": "MaxPool2d",
+                  "attrs": {
+                    "_kernel_size": [
+                      2,
+                      2
+                    ],
+                    "_stride": [
+                      1,
+                      1
+                    ],
+                    "_padding": [
+                      [
+                        0,
+                        0
+                      ],
+                      [
+                        0,
+                        0
+                      ]
+                    ]
+                  },
+                  "weights": {},
+                  "children": {}
+                }
+              }
+            },
+            "blocks_0": {
+              "type": "Stage",
+              "attrs": {
+                "_depth": 2
+              },
+              "weights": {},
+              "children": {
+                "blocks_0": {
+                  "type": "LCNetV4Block",
+                  "attrs": {
+                    "has_residual": true
+                  },
+                  "weights": {},
+                  "children": {
+                    "token_conv": {
+                      "type": "Conv2d",
+                      "attrs": {
+                        "stride": [
+                          1,
+                          1
+                        ],
+                        "padding": [
+                          1,
+                          1
+                        ],
+                        "groups": 48,
+                        "dilation": 1
+                      },
+                      "weights": {
+                        "weight": "backbone.encoder.blocks_0.blocks_0.token_conv.weight",
+                        "bias": "backbone.encoder.blocks_0.blocks_0.token_conv.bias"
+                      },
+                      "children": {}
+                    },
+                    "token_squeeze_excitation": {
+                      "type": "TokenSqueezeExcitation",
+                      "attrs": {},
+                      "weights": {},
+                      "children": {
+                        "conv1": {
+                          "type": "Conv2d",
+                          "attrs": {
+                            "stride": [
+                              1,
+                              1
+                            ],
+                            "padding": [
+                              0,
+                              0
+                            ],
+                            "groups": 1,
+                            "dilation": 1
+                          },
+                          "weights": {
+                            "weight": "backbone.encoder.blocks_0.blocks_0.token_squeeze_excitation.conv1.weight",
+                            "bias": "backbone.encoder.blocks_0.blocks_0.token_squeeze_excitation.conv1.bias"
+                          },
+                          "children": {}
+                        },
+                        "conv2": {
+                          "type": "Conv2d",
+                          "attrs": {
+                            "stride": [
+                              1,
+                              1
+                            ],
+                            "padding": [
+                              0,
+                              0
+                            ],
+                            "groups": 1,
+                            "dilation": 1
+                          },
+                          "weights": {
+                            "weight": "backbone.encoder.blocks_0.blocks_0.token_squeeze_excitation.conv2.weight",
+                            "bias": "backbone.encoder.blocks_0.blocks_0.token_squeeze_excitation.conv2.bias"
+                          },
+                          "children": {}
+                        },
+                        "relu": {
+                          "type": "ReLU",
+                          "attrs": {},
+                          "weights": {},
+                          "children": {}
+                        },
+                        "hardsigmoid": {
+                          "type": "HardSigmoid",
+                          "attrs": {},
+                          "weights": {},
+                          "children": {}
+                        }
+                      }
+                    },
+                    "channel_conv1": {
+                      "type": "Conv2DBN",
+                      "attrs": {},
+                      "weights": {},
+                      "children": {
+                        "conv": {
+                          "type": "Conv2d",
+                          "attrs": {
+                            "stride": [
+                              1,
+                              1
+                            ],
+                            "padding": [
+                              0,
+                              0
+                            ],
+                            "groups": 1,
+                            "dilation": 1
+                          },
+                          "weights": {
+                            "weight": "backbone.encoder.blocks_0.blocks_0.channel_conv1.conv.weight",
+                            "bias": "backbone.encoder.blocks_0.blocks_0.channel_conv1.conv.bias"
+                          },
+                          "children": {}
+                        }
+                      }
+                    },
+                    "channel_act": {
+                      "type": "GELU",
+                      "attrs": {
+                        "_approx": "none"
+                      },
+                      "weights": {},
+                      "children": {}
+                    },
+                    "channel_conv2": {
+                      "type": "Conv2DBN",
+                      "attrs": {},
+                      "weights": {},
+                      "children": {
+                        "conv": {
+                          "type": "Conv2d",
+                          "attrs": {
+                            "stride": [
+                              1,
+                              1
+                            ],
+                            "padding": [
+                              0,
+                              0
+                            ],
+                            "groups": 1,
+                            "dilation": 1
+                          },
+                          "weights": {
+                            "weight": "backbone.encoder.blocks_0.blocks_0.channel_conv2.conv.weight",
+                            "bias": "backbone.encoder.blocks_0.blocks_0.channel_conv2.conv.bias"
+                          },
+                          "children": {}
+                        }
+                      }
+                    }
+                  }
+                },
+                "blocks_1": {
+                  "type": "LCNetV4Block",
+                  "attrs": {
+                    "has_residual": true
+                  },
+                  "weights": {},
+                  "children": {
+                    "token_conv": {
+                      "type": "Conv2d",
+                      "attrs": {
+                        "stride": [
+                          1,
+                          1
+                        ],
+                        "padding": [
+                          1,
+                          1
+                        ],
+                        "groups": 48,
+                        "dilation": 1
+                      },
+                      "weights": {
+                        "weight": "backbone.encoder.blocks_0.blocks_1.token_conv.weight",
+                        "bias": "backbone.encoder.blocks_0.blocks_1.token_conv.bias"
+                      },
+                      "children": {}
+                    },
+                    "channel_conv1": {
+                      "type": "Conv2DBN",
+                      "attrs": {},
+                      "weights": {},
+                      "children": {
+                        "conv": {
+                          "type": "Conv2d",
+                          "attrs": {
+                            "stride": [
+                              1,
+                              1
+                            ],
+                            "padding": [
+                              0,
+                              0
+                            ],
+                            "groups": 1,
+                            "dilation": 1
+                          },
+                          "weights": {
+                            "weight": "backbone.encoder.blocks_0.blocks_1.channel_conv1.conv.weight",
+                            "bias": "backbone.encoder.blocks_0.blocks_1.channel_conv1.conv.bias"
+                          },
+                          "children": {}
+                        }
+                      }
+                    },
+                    "channel_act": {
+                      "type": "GELU",
+                      "attrs": {
+                        "_approx": "none"
+                      },
+                      "weights": {},
+                      "children": {}
+                    },
+                    "channel_conv2": {
+                      "type": "Conv2DBN",
+                      "attrs": {},
+                      "weights": {},
+                      "children": {
+                        "conv": {
+                          "type": "Conv2d",
+                          "attrs": {
+                            "stride": [
+                              1,
+                              1
+                            ],
+                            "padding": [
+                              0,
+                              0
+                            ],
+                            "groups": 1,
+                            "dilation": 1
+                          },
+                          "weights": {
+                            "weight": "backbone.encoder.blocks_0.blocks_1.channel_conv2.conv.weight",
+                            "bias": "backbone.encoder.blocks_0.blocks_1.channel_conv2.conv.bias"
+                          },
+                          "children": {}
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "blocks_1": {
+              "type": "Stage",
+              "attrs": {
+                "_depth": 3
+              },
+              "weights": {},
+              "children": {
+                "blocks_0": {
+                  "type": "LCNetV4Block",
+                  "attrs": {
+                    "has_residual": false
+                  },
+                  "weights": {},
+                  "children": {
+                    "token_conv": {
+                      "type": "Conv2DBN",
+                      "attrs": {},
+                      "weights": {},
+                      "children": {
+                        "conv": {
+                          "type": "Conv2d",
+                          "attrs": {
+                            "stride": [
+                              2,
+                              2
+                            ],
+                            "padding": [
+                              1,
+                              1
+                            ],
+                            "groups": 48,
+                            "dilation": 1
+                          },
+                          "weights": {
+                            "weight": "backbone.encoder.blocks_1.blocks_0.token_conv.conv.weight",
+                            "bias": "backbone.encoder.blocks_1.blocks_0.token_conv.conv.bias"
+                          },
+                          "children": {}
+                        }
+                      }
+                    },
+                    "channel_conv1": {
+                      "type": "Conv2DBN",
+                      "attrs": {},
+                      "weights": {},
+                      "children": {
+                        "conv": {
+                          "type": "Conv2d",
+                          "attrs": {
+                            "stride": [
+                              1,
+                              1
+                            ],
+                            "padding": [
+                              0,
+                              0
+                            ],
+                            "groups": 1,
+                            "dilation": 1
+                          },
+                          "weights": {
+                            "weight": "backbone.encoder.blocks_1.blocks_0.channel_conv1.conv.weight",
+                            "bias": "backbone.encoder.blocks_1.blocks_0.channel_conv1.conv.bias"
+                          },
+                          "children": {}
+                        }
+                      }
+                    },
+                    "channel_act": {
+                      "type": "GELU",
+                      "attrs": {
+                        "_approx": "none"
+                      },
+                      "weights": {},
+                      "children": {}
+                    },
+                    "channel_conv2": {
+                      "type": "Conv2DBN",
+                      "attrs": {},
+                      "weights": {},
+                      "children": {
+                        "conv": {
+                          "type": "Conv2d",
+                          "attrs": {
+                            "stride": [
+                              1,
+                              1
+                            ],
+                            "padding": [
+                              0,
+                              0
+                            ],
+                            "groups": 1,
+                            "dilation": 1
+                          },
+                          "weights": {
+                            "weight": "backbone.encoder.blocks_1.blocks_0.channel_conv2.conv.weight",
+                            "bias": "backbone.encoder.blocks_1.blocks_0.channel_conv2.conv.bias"
+                          },
+                          "children": {}
+                        }
+                      }
+                    }
+                  }
+                },
+                "blocks_1": {
+                  "type": "LCNetV4Block",
+                  "attrs": {
+                    "has_residual": true
+                  },
+                  "weights": {},
+                  "children": {
+                    "token_conv": {
+                      "type": "Conv2d",
+                      "attrs": {
+                        "stride": [
+                          1,
+                          1
+                        ],
+                        "padding": [
+                          1,
+                          1
+                        ],
+                        "groups": 96,
+                        "dilation": 1
+                      },
+                      "weights": {
+                        "weight": "backbone.encoder.blocks_1.blocks_1.token_conv.weight",
+                        "bias": "backbone.encoder.blocks_1.blocks_1.token_conv.bias"
+                      },
+                      "children": {}
+                    },
+                    "token_squeeze_excitation": {
+                      "type": "TokenSqueezeExcitation",
+                      "attrs": {},
+                      "weights": {},
+                      "children": {
+                        "conv1": {
+                          "type": "Conv2d",
+                          "attrs": {
+                            "stride": [
+                              1,
+                              1
+                            ],
+                            "padding": [
+                              0,
+                              0
+                            ],
+                            "groups": 1,
+                            "dilation": 1
+                          },
+                          "weights": {
+                            "weight": "backbone.encoder.blocks_1.blocks_1.token_squeeze_excitation.conv1.weight",
+                            "bias": "backbone.encoder.blocks_1.blocks_1.token_squeeze_excitation.conv1.bias"
+                          },
+                          "children": {}
+                        },
+                        "conv2": {
+                          "type": "Conv2d",
+                          "attrs": {
+                            "stride": [
+                              1,
+                              1
+                            ],
+                            "padding": [
+                              0,
+                              0
+                            ],
+                            "groups": 1,
+                            "dilation": 1
+                          },
+                          "weights": {
+                            "weight": "backbone.encoder.blocks_1.blocks_1.token_squeeze_excitation.conv2.weight",
+                            "bias": "backbone.encoder.blocks_1.blocks_1.token_squeeze_excitation.conv2.bias"
+                          },
+                          "children": {}
+                        },
+                        "relu": {
+                          "type": "ReLU",
+                          "attrs": {},
+                          "weights": {},
+                          "children": {}
+                        },
+                        "hardsigmoid": {
+                          "type": "HardSigmoid",
+                          "attrs": {},
+                          "weights": {},
+                          "children": {}
+                        }
+                      }
+                    },
+                    "channel_conv1": {
+                      "type": "Conv2DBN",
+                      "attrs": {},
+                      "weights": {},
+                      "children": {
+                        "conv": {
+                          "type": "Conv2d",
+                          "attrs": {
+                            "stride": [
+                              1,
+                              1
+                            ],
+                            "padding": [
+                              0,
+                              0
+                            ],
+                            "groups": 1,
+                            "dilation": 1
+                          },
+                          "weights": {
+                            "weight": "backbone.encoder.blocks_1.blocks_1.channel_conv1.conv.weight",
+                            "bias": "backbone.encoder.blocks_1.blocks_1.channel_conv1.conv.bias"
+                          },
+                          "children": {}
+                        }
+                      }
+                    },
+                    "channel_act": {
+                      "type": "GELU",
+                      "attrs": {
+                        "_approx": "none"
+                      },
+                      "weights": {},
+                      "children": {}
+                    },
+                    "channel_conv2": {
+                      "type": "Conv2DBN",
+                      "attrs": {},
+                      "weights": {},
+                      "children": {
+                        "conv": {
+                          "type": "Conv2d",
+                          "attrs": {
+                            "stride": [
+                              1,
+                              1
+                            ],
+                            "padding": [
+                              0,
+                              0
+                            ],
+                            "groups": 1,
+                            "dilation": 1
+                          },
+                          "weights": {
+                            "weight": "backbone.encoder.blocks_1.blocks_1.channel_conv2.conv.weight",
+                            "bias": "backbone.encoder.blocks_1.blocks_1.channel_conv2.conv.bias"
+                          },
+                          "children": {}
+                        }
+                      }
+                    }
+                  }
+                },
+                "blocks_2": {
+                  "type": "LCNetV4Block",
+                  "attrs": {
+                    "has_residual": true
+                  },
+                  "weights": {},
+                  "children": {
+                    "token_conv": {
+                      "type": "Conv2d",
+                      "attrs": {
+                        "stride": [
+                          1,
+                          1
+                        ],
+                        "padding": [
+                          1,
+                          1
+                        ],
+                        "groups": 96,
+                        "dilation": 1
+                      },
+                      "weights": {
+                        "weight": "backbone.encoder.blocks_1.blocks_2.token_conv.weight",
+                        "bias": "backbone.encoder.blocks_1.blocks_2.token_conv.bias"
+                      },
+                      "children": {}
+                    },
+                    "channel_conv1": {
+                      "type": "Conv2DBN",
+                      "attrs": {},
+                      "weights": {},
+                      "children": {
+                        "conv": {
+                          "type": "Conv2d",
+                          "attrs": {
+                            "stride": [
+                              1,
+                              1
+                            ],
+                            "padding": [
+                              0,
+                              0
+                            ],
+                            "groups": 1,
+                            "dilation": 1
+                          },
+                          "weights": {
+                            "weight": "backbone.encoder.blocks_1.blocks_2.channel_conv1.conv.weight",
+                            "bias": "backbone.encoder.blocks_1.blocks_2.channel_conv1.conv.bias"
+                          },
+                          "children": {}
+                        }
+                      }
+                    },
+                    "channel_act": {
+                      "type": "GELU",
+                      "attrs": {
+                        "_approx": "none"
+                      },
+                      "weights": {},
+                      "children": {}
+                    },
+                    "channel_conv2": {
+                      "type": "Conv2DBN",
+                      "attrs": {},
+                      "weights": {},
+                      "children": {
+                        "conv": {
+                          "type": "Conv2d",
+                          "attrs": {
+                            "stride": [
+                              1,
+                              1
+                            ],
+                            "padding": [
+                              0,
+                              0
+                            ],
+                            "groups": 1,
+                            "dilation": 1
+                          },
+                          "weights": {
+                            "weight": "backbone.encoder.blocks_1.blocks_2.channel_conv2.conv.weight",
+                            "bias": "backbone.encoder.blocks_1.blocks_2.channel_conv2.conv.bias"
+                          },
+                          "children": {}
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "blocks_2": {
+              "type": "Stage",
+              "attrs": {
+                "_depth": 5
+              },
+              "weights": {},
+              "children": {
+                "blocks_0": {
+                  "type": "LCNetV4Block",
+                  "attrs": {
+                    "has_residual": false
+                  },
+                  "weights": {},
+                  "children": {
+                    "token_conv": {
+                      "type": "Conv2DBN",
+                      "attrs": {},
+                      "weights": {},
+                      "children": {
+                        "conv": {
+                          "type": "Conv2d",
+                          "attrs": {
+                            "stride": [
+                              2,
+                              2
+                            ],
+                            "padding": [
+                              1,
+                              1
+                            ],
+                            "groups": 96,
+                            "dilation": 1
+                          },
+                          "weights": {
+                            "weight": "backbone.encoder.blocks_2.blocks_0.token_conv.conv.weight",
+                            "bias": "backbone.encoder.blocks_2.blocks_0.token_conv.conv.bias"
+                          },
+                          "children": {}
+                        }
+                      }
+                    },
+                    "channel_conv1": {
+                      "type": "Conv2DBN",
+                      "attrs": {},
+                      "weights": {},
+                      "children": {
+                        "conv": {
+                          "type": "Conv2d",
+                          "attrs": {
+                            "stride": [
+                              1,
+                              1
+                            ],
+                            "padding": [
+                              0,
+                              0
+                            ],
+                            "groups": 1,
+                            "dilation": 1
+                          },
+                          "weights": {
+                            "weight": "backbone.encoder.blocks_2.blocks_0.channel_conv1.conv.weight",
+                            "bias": "backbone.encoder.blocks_2.blocks_0.channel_conv1.conv.bias"
+                          },
+                          "children": {}
+                        }
+                      }
+                    },
+                    "channel_act": {
+                      "type": "GELU",
+                      "attrs": {
+                        "_approx": "none"
+                      },
+                      "weights": {},
+                      "children": {}
+                    },
+                    "channel_conv2": {
+                      "type": "Conv2DBN",
+                      "attrs": {},
+                      "weights": {},
+                      "children": {
+                        "conv": {
+                          "type": "Conv2d",
+                          "attrs": {
+                            "stride": [
+                              1,
+                              1
+                            ],
+                            "padding": [
+                              0,
+                              0
+                            ],
+                            "groups": 1,
+                            "dilation": 1
+                          },
+                          "weights": {
+                            "weight": "backbone.encoder.blocks_2.blocks_0.channel_conv2.conv.weight",
+                            "bias": "backbone.encoder.blocks_2.blocks_0.channel_conv2.conv.bias"
+                          },
+                          "children": {}
+                        }
+                      }
+                    }
+                  }
+                },
+                "blocks_1": {
+                  "type": "LCNetV4Block",
+                  "attrs": {
+                    "has_residual": true
+                  },
+                  "weights": {},
+                  "children": {
+                    "token_conv": {
+                      "type": "Conv2d",
+                      "attrs": {
+                        "stride": [
+                          1,
+                          1
+                        ],
+                        "padding": [
+                          1,
+                          1
+                        ],
+                        "groups": 192,
+                        "dilation": 1
+                      },
+                      "weights": {
+                        "weight": "backbone.encoder.blocks_2.blocks_1.token_conv.weight",
+                        "bias": "backbone.encoder.blocks_2.blocks_1.token_conv.bias"
+                      },
+                      "children": {}
+                    },
+                    "token_squeeze_excitation": {
+                      "type": "TokenSqueezeExcitation",
+                      "attrs": {},
+                      "weights": {},
+                      "children": {
+                        "conv1": {
+                          "type": "Conv2d",
+                          "attrs": {
+                            "stride": [
+                              1,
+                              1
+                            ],
+                            "padding": [
+                              0,
+                              0
+                            ],
+                            "groups": 1,
+                            "dilation": 1
+                          },
+                          "weights": {
+                            "weight": "backbone.encoder.blocks_2.blocks_1.token_squeeze_excitation.conv1.weight",
+                            "bias": "backbone.encoder.blocks_2.blocks_1.token_squeeze_excitation.conv1.bias"
+                          },
+                          "children": {}
+                        },
+                        "conv2": {
+                          "type": "Conv2d",
+                          "attrs": {
+                            "stride": [
+                              1,
+                              1
+                            ],
+                            "padding": [
+                              0,
+                              0
+                            ],
+                            "groups": 1,
+                            "dilation": 1
+                          },
+                          "weights": {
+                            "weight": "backbone.encoder.blocks_2.blocks_1.token_squeeze_excitation.conv2.weight",
+                            "bias": "backbone.encoder.blocks_2.blocks_1.token_squeeze_excitation.conv2.bias"
+                          },
+                          "children": {}
+                        },
+                        "relu": {
+                          "type": "ReLU",
+                          "attrs": {},
+                          "weights": {},
+                          "children": {}
+                        },
+                        "hardsigmoid": {
+                          "type": "HardSigmoid",
+                          "attrs": {},
+                          "weights": {},
+                          "children": {}
+                        }
+                      }
+                    },
+                    "channel_conv1": {
+                      "type": "Conv2DBN",
+                      "attrs": {},
+                      "weights": {},
+                      "children": {
+                        "conv": {
+                          "type": "Conv2d",
+                          "attrs": {
+                            "stride": [
+                              1,
+                              1
+                            ],
+                            "padding": [
+                              0,
+                              0
+                            ],
+                            "groups": 1,
+                            "dilation": 1
+                          },
+                          "weights": {
+                            "weight": "backbone.encoder.blocks_2.blocks_1.channel_conv1.conv.weight",
+                            "bias": "backbone.encoder.blocks_2.blocks_1.channel_conv1.conv.bias"
+                          },
+                          "children": {}
+                        }
+                      }
+                    },
+                    "channel_act": {
+                      "type": "GELU",
+                      "attrs": {
+                        "_approx": "none"
+                      },
+                      "weights": {},
+                      "children": {}
+                    },
+                    "channel_conv2": {
+                      "type": "Conv2DBN",
+                      "attrs": {},
+                      "weights": {},
+                      "children": {
+                        "conv": {
+                          "type": "Conv2d",
+                          "attrs": {
+                            "stride": [
+                              1,
+                              1
+                            ],
+                            "padding": [
+                              0,
+                              0
+                            ],
+                            "groups": 1,
+                            "dilation": 1
+                          },
+                          "weights": {
+                            "weight": "backbone.encoder.blocks_2.blocks_1.channel_conv2.conv.weight",
+                            "bias": "backbone.encoder.blocks_2.blocks_1.channel_conv2.conv.bias"
+                          },
+                          "children": {}
+                        }
+                      }
+                    }
+                  }
+                },
+                "blocks_2": {
+                  "type": "LCNetV4Block",
+                  "attrs": {
+                    "has_residual": true
+                  },
+                  "weights": {},
+                  "children": {
+                    "token_conv": {
+                      "type": "Conv2d",
+                      "attrs": {
+                        "stride": [
+                          1,
+                          1
+                        ],
+                        "padding": [
+                          1,
+                          1
+                        ],
+                        "groups": 192,
+                        "dilation": 1
+                      },
+                      "weights": {
+                        "weight": "backbone.encoder.blocks_2.blocks_2.token_conv.weight",
+                        "bias": "backbone.encoder.blocks_2.blocks_2.token_conv.bias"
+                      },
+                      "children": {}
+                    },
+                    "channel_conv1": {
+                      "type": "Conv2DBN",
+                      "attrs": {},
+                      "weights": {},
+                      "children": {
+                        "conv": {
+                          "type": "Conv2d",
+                          "attrs": {
+                            "stride": [
+                              1,
+                              1
+                            ],
+                            "padding": [
+                              0,
+                              0
+                            ],
+                            "groups": 1,
+                            "dilation": 1
+                          },
+                          "weights": {
+                            "weight": "backbone.encoder.blocks_2.blocks_2.channel_conv1.conv.weight",
+                            "bias": "backbone.encoder.blocks_2.blocks_2.channel_conv1.conv.bias"
+                          },
+                          "children": {}
+                        }
+                      }
+                    },
+                    "channel_act": {
+                      "type": "GELU",
+                      "attrs": {
+                        "_approx": "none"
+                      },
+                      "weights": {},
+                      "children": {}
+                    },
+                    "channel_conv2": {
+                      "type": "Conv2DBN",
+                      "attrs": {},
+                      "weights": {},
+                      "children": {
+                        "conv": {
+                          "type": "Conv2d",
+                          "attrs": {
+                            "stride": [
+                              1,
+                              1
+                            ],
+                            "padding": [
+                              0,
+                              0
+                            ],
+                            "groups": 1,
+                            "dilation": 1
+                          },
+                          "weights": {
+                            "weight": "backbone.encoder.blocks_2.blocks_2.channel_conv2.conv.weight",
+                            "bias": "backbone.encoder.blocks_2.blocks_2.channel_conv2.conv.bias"
+                          },
+                          "children": {}
+                        }
+                      }
+                    }
+                  }
+                },
+                "blocks_3": {
+                  "type": "LCNetV4Block",
+                  "attrs": {
+                    "has_residual": true
+                  },
+                  "weights": {},
+                  "children": {
+                    "token_conv": {
+                      "type": "Conv2d",
+                      "attrs": {
+                        "stride": [
+                          1,
+                          1
+                        ],
+                        "padding": [
+                          1,
+                          1
+                        ],
+                        "groups": 192,
+                        "dilation": 1
+                      },
+                      "weights": {
+                        "weight": "backbone.encoder.blocks_2.blocks_3.token_conv.weight",
+                        "bias": "backbone.encoder.blocks_2.blocks_3.token_conv.bias"
+                      },
+                      "children": {}
+                    },
+                    "token_squeeze_excitation": {
+                      "type": "TokenSqueezeExcitation",
+                      "attrs": {},
+                      "weights": {},
+                      "children": {
+                        "conv1": {
+                          "type": "Conv2d",
+                          "attrs": {
+                            "stride": [
+                              1,
+                              1
+                            ],
+                            "padding": [
+                              0,
+                              0
+                            ],
+                            "groups": 1,
+                            "dilation": 1
+                          },
+                          "weights": {
+                            "weight": "backbone.encoder.blocks_2.blocks_3.token_squeeze_excitation.conv1.weight",
+                            "bias": "backbone.encoder.blocks_2.blocks_3.token_squeeze_excitation.conv1.bias"
+                          },
+                          "children": {}
+                        },
+                        "conv2": {
+                          "type": "Conv2d",
+                          "attrs": {
+                            "stride": [
+                              1,
+                              1
+                            ],
+                            "padding": [
+                              0,
+                              0
+                            ],
+                            "groups": 1,
+                            "dilation": 1
+                          },
+                          "weights": {
+                            "weight": "backbone.encoder.blocks_2.blocks_3.token_squeeze_excitation.conv2.weight",
+                            "bias": "backbone.encoder.blocks_2.blocks_3.token_squeeze_excitation.conv2.bias"
+                          },
+                          "children": {}
+                        },
+                        "relu": {
+                          "type": "ReLU",
+                          "attrs": {},
+                          "weights": {},
+                          "children": {}
+                        },
+                        "hardsigmoid": {
+                          "type": "HardSigmoid",
+                          "attrs": {},
+                          "weights": {},
+                          "children": {}
+                        }
+                      }
+                    },
+                    "channel_conv1": {
+                      "type": "Conv2DBN",
+                      "attrs": {},
+                      "weights": {},
+                      "children": {
+                        "conv": {
+                          "type": "Conv2d",
+                          "attrs": {
+                            "stride": [
+                              1,
+                              1
+                            ],
+                            "padding": [
+                              0,
+                              0
+                            ],
+                            "groups": 1,
+                            "dilation": 1
+                          },
+                          "weights": {
+                            "weight": "backbone.encoder.blocks_2.blocks_3.channel_conv1.conv.weight",
+                            "bias": "backbone.encoder.blocks_2.blocks_3.channel_conv1.conv.bias"
+                          },
+                          "children": {}
+                        }
+                      }
+                    },
+                    "channel_act": {
+                      "type": "GELU",
+                      "attrs": {
+                        "_approx": "none"
+                      },
+                      "weights": {},
+                      "children": {}
+                    },
+                    "channel_conv2": {
+                      "type": "Conv2DBN",
+                      "attrs": {},
+                      "weights": {},
+                      "children": {
+                        "conv": {
+                          "type": "Conv2d",
+                          "attrs": {
+                            "stride": [
+                              1,
+                              1
+                            ],
+                            "padding": [
+                              0,
+                              0
+                            ],
+                            "groups": 1,
+                            "dilation": 1
+                          },
+                          "weights": {
+                            "weight": "backbone.encoder.blocks_2.blocks_3.channel_conv2.conv.weight",
+                            "bias": "backbone.encoder.blocks_2.blocks_3.channel_conv2.conv.bias"
+                          },
+                          "children": {}
+                        }
+                      }
+                    }
+                  }
+                },
+                "blocks_4": {
+                  "type": "LCNetV4Block",
+                  "attrs": {
+                    "has_residual": true
+                  },
+                  "weights": {},
+                  "children": {
+                    "token_conv": {
+                      "type": "Conv2d",
+                      "attrs": {
+                        "stride": [
+                          1,
+                          1
+                        ],
+                        "padding": [
+                          1,
+                          1
+                        ],
+                        "groups": 192,
+                        "dilation": 1
+                      },
+                      "weights": {
+                        "weight": "backbone.encoder.blocks_2.blocks_4.token_conv.weight",
+                        "bias": "backbone.encoder.blocks_2.blocks_4.token_conv.bias"
+                      },
+                      "children": {}
+                    },
+                    "channel_conv1": {
+                      "type": "Conv2DBN",
+                      "attrs": {},
+                      "weights": {},
+                      "children": {
+                        "conv": {
+                          "type": "Conv2d",
+                          "attrs": {
+                            "stride": [
+                              1,
+                              1
+                            ],
+                            "padding": [
+                              0,
+                              0
+                            ],
+                            "groups": 1,
+                            "dilation": 1
+                          },
+                          "weights": {
+                            "weight": "backbone.encoder.blocks_2.blocks_4.channel_conv1.conv.weight",
+                            "bias": "backbone.encoder.blocks_2.blocks_4.channel_conv1.conv.bias"
+                          },
+                          "children": {}
+                        }
+                      }
+                    },
+                    "channel_act": {
+                      "type": "GELU",
+                      "attrs": {
+                        "_approx": "none"
+                      },
+                      "weights": {},
+                      "children": {}
+                    },
+                    "channel_conv2": {
+                      "type": "Conv2DBN",
+                      "attrs": {},
+                      "weights": {},
+                      "children": {
+                        "conv": {
+                          "type": "Conv2d",
+                          "attrs": {
+                            "stride": [
+                              1,
+                              1
+                            ],
+                            "padding": [
+                              0,
+                              0
+                            ],
+                            "groups": 1,
+                            "dilation": 1
+                          },
+                          "weights": {
+                            "weight": "backbone.encoder.blocks_2.blocks_4.channel_conv2.conv.weight",
+                            "bias": "backbone.encoder.blocks_2.blocks_4.channel_conv2.conv.bias"
+                          },
+                          "children": {}
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "blocks_3": {
+              "type": "Stage",
+              "attrs": {
+                "_depth": 3
+              },
+              "weights": {},
+              "children": {
+                "blocks_0": {
+                  "type": "LCNetV4Block",
+                  "attrs": {
+                    "has_residual": false
+                  },
+                  "weights": {},
+                  "children": {
+                    "token_conv": {
+                      "type": "Conv2DBN",
+                      "attrs": {},
+                      "weights": {},
+                      "children": {
+                        "conv": {
+                          "type": "Conv2d",
+                          "attrs": {
+                            "stride": [
+                              2,
+                              2
+                            ],
+                            "padding": [
+                              1,
+                              1
+                            ],
+                            "groups": 192,
+                            "dilation": 1
+                          },
+                          "weights": {
+                            "weight": "backbone.encoder.blocks_3.blocks_0.token_conv.conv.weight",
+                            "bias": "backbone.encoder.blocks_3.blocks_0.token_conv.conv.bias"
+                          },
+                          "children": {}
+                        }
+                      }
+                    },
+                    "channel_conv1": {
+                      "type": "Conv2DBN",
+                      "attrs": {},
+                      "weights": {},
+                      "children": {
+                        "conv": {
+                          "type": "Conv2d",
+                          "attrs": {
+                            "stride": [
+                              1,
+                              1
+                            ],
+                            "padding": [
+                              0,
+                              0
+                            ],
+                            "groups": 1,
+                            "dilation": 1
+                          },
+                          "weights": {
+                            "weight": "backbone.encoder.blocks_3.blocks_0.channel_conv1.conv.weight",
+                            "bias": "backbone.encoder.blocks_3.blocks_0.channel_conv1.conv.bias"
+                          },
+                          "children": {}
+                        }
+                      }
+                    },
+                    "channel_act": {
+                      "type": "GELU",
+                      "attrs": {
+                        "_approx": "none"
+                      },
+                      "weights": {},
+                      "children": {}
+                    },
+                    "channel_conv2": {
+                      "type": "Conv2DBN",
+                      "attrs": {},
+                      "weights": {},
+                      "children": {
+                        "conv": {
+                          "type": "Conv2d",
+                          "attrs": {
+                            "stride": [
+                              1,
+                              1
+                            ],
+                            "padding": [
+                              0,
+                              0
+                            ],
+                            "groups": 1,
+                            "dilation": 1
+                          },
+                          "weights": {
+                            "weight": "backbone.encoder.blocks_3.blocks_0.channel_conv2.conv.weight",
+                            "bias": "backbone.encoder.blocks_3.blocks_0.channel_conv2.conv.bias"
+                          },
+                          "children": {}
+                        }
+                      }
+                    }
+                  }
+                },
+                "blocks_1": {
+                  "type": "LCNetV4Block",
+                  "attrs": {
+                    "has_residual": true
+                  },
+                  "weights": {},
+                  "children": {
+                    "token_conv": {
+                      "type": "Conv2d",
+                      "attrs": {
+                        "stride": [
+                          1,
+                          1
+                        ],
+                        "padding": [
+                          1,
+                          1
+                        ],
+                        "groups": 384,
+                        "dilation": 1
+                      },
+                      "weights": {
+                        "weight": "backbone.encoder.blocks_3.blocks_1.token_conv.weight",
+                        "bias": "backbone.encoder.blocks_3.blocks_1.token_conv.bias"
+                      },
+                      "children": {}
+                    },
+                    "token_squeeze_excitation": {
+                      "type": "TokenSqueezeExcitation",
+                      "attrs": {},
+                      "weights": {},
+                      "children": {
+                        "conv1": {
+                          "type": "Conv2d",
+                          "attrs": {
+                            "stride": [
+                              1,
+                              1
+                            ],
+                            "padding": [
+                              0,
+                              0
+                            ],
+                            "groups": 1,
+                            "dilation": 1
+                          },
+                          "weights": {
+                            "weight": "backbone.encoder.blocks_3.blocks_1.token_squeeze_excitation.conv1.weight",
+                            "bias": "backbone.encoder.blocks_3.blocks_1.token_squeeze_excitation.conv1.bias"
+                          },
+                          "children": {}
+                        },
+                        "conv2": {
+                          "type": "Conv2d",
+                          "attrs": {
+                            "stride": [
+                              1,
+                              1
+                            ],
+                            "padding": [
+                              0,
+                              0
+                            ],
+                            "groups": 1,
+                            "dilation": 1
+                          },
+                          "weights": {
+                            "weight": "backbone.encoder.blocks_3.blocks_1.token_squeeze_excitation.conv2.weight",
+                            "bias": "backbone.encoder.blocks_3.blocks_1.token_squeeze_excitation.conv2.bias"
+                          },
+                          "children": {}
+                        },
+                        "relu": {
+                          "type": "ReLU",
+                          "attrs": {},
+                          "weights": {},
+                          "children": {}
+                        },
+                        "hardsigmoid": {
+                          "type": "HardSigmoid",
+                          "attrs": {},
+                          "weights": {},
+                          "children": {}
+                        }
+                      }
+                    },
+                    "channel_conv1": {
+                      "type": "Conv2DBN",
+                      "attrs": {},
+                      "weights": {},
+                      "children": {
+                        "conv": {
+                          "type": "Conv2d",
+                          "attrs": {
+                            "stride": [
+                              1,
+                              1
+                            ],
+                            "padding": [
+                              0,
+                              0
+                            ],
+                            "groups": 1,
+                            "dilation": 1
+                          },
+                          "weights": {
+                            "weight": "backbone.encoder.blocks_3.blocks_1.channel_conv1.conv.weight",
+                            "bias": "backbone.encoder.blocks_3.blocks_1.channel_conv1.conv.bias"
+                          },
+                          "children": {}
+                        }
+                      }
+                    },
+                    "channel_act": {
+                      "type": "GELU",
+                      "attrs": {
+                        "_approx": "none"
+                      },
+                      "weights": {},
+                      "children": {}
+                    },
+                    "channel_conv2": {
+                      "type": "Conv2DBN",
+                      "attrs": {},
+                      "weights": {},
+                      "children": {
+                        "conv": {
+                          "type": "Conv2d",
+                          "attrs": {
+                            "stride": [
+                              1,
+                              1
+                            ],
+                            "padding": [
+                              0,
+                              0
+                            ],
+                            "groups": 1,
+                            "dilation": 1
+                          },
+                          "weights": {
+                            "weight": "backbone.encoder.blocks_3.blocks_1.channel_conv2.conv.weight",
+                            "bias": "backbone.encoder.blocks_3.blocks_1.channel_conv2.conv.bias"
+                          },
+                          "children": {}
+                        }
+                      }
+                    }
+                  }
+                },
+                "blocks_2": {
+                  "type": "LCNetV4Block",
+                  "attrs": {
+                    "has_residual": true
+                  },
+                  "weights": {},
+                  "children": {
+                    "token_conv": {
+                      "type": "Conv2d",
+                      "attrs": {
+                        "stride": [
+                          1,
+                          1
+                        ],
+                        "padding": [
+                          1,
+                          1
+                        ],
+                        "groups": 384,
+                        "dilation": 1
+                      },
+                      "weights": {
+                        "weight": "backbone.encoder.blocks_3.blocks_2.token_conv.weight",
+                        "bias": "backbone.encoder.blocks_3.blocks_2.token_conv.bias"
+                      },
+                      "children": {}
+                    },
+                    "channel_conv1": {
+                      "type": "Conv2DBN",
+                      "attrs": {},
+                      "weights": {},
+                      "children": {
+                        "conv": {
+                          "type": "Conv2d",
+                          "attrs": {
+                            "stride": [
+                              1,
+                              1
+                            ],
+                            "padding": [
+                              0,
+                              0
+                            ],
+                            "groups": 1,
+                            "dilation": 1
+                          },
+                          "weights": {
+                            "weight": "backbone.encoder.blocks_3.blocks_2.channel_conv1.conv.weight",
+                            "bias": "backbone.encoder.blocks_3.blocks_2.channel_conv1.conv.bias"
+                          },
+                          "children": {}
+                        }
+                      }
+                    },
+                    "channel_act": {
+                      "type": "GELU",
+                      "attrs": {
+                        "_approx": "none"
+                      },
+                      "weights": {},
+                      "children": {}
+                    },
+                    "channel_conv2": {
+                      "type": "Conv2DBN",
+                      "attrs": {},
+                      "weights": {},
+                      "children": {
+                        "conv": {
+                          "type": "Conv2d",
+                          "attrs": {
+                            "stride": [
+                              1,
+                              1
+                            ],
+                            "padding": [
+                              0,
+                              0
+                            ],
+                            "groups": 1,
+                            "dilation": 1
+                          },
+                          "weights": {
+                            "weight": "backbone.encoder.blocks_3.blocks_2.channel_conv2.conv.weight",
+                            "bias": "backbone.encoder.blocks_3.blocks_2.channel_conv2.conv.bias"
+                          },
+                          "children": {}
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "neck": {
+      "type": "RepLKFPN",
+      "attrs": {},
+      "weights": {},
+      "children": {
+        "insert_conv_0": {
+          "type": "RSELayer",
+          "attrs": {
+            "shortcut": true
+          },
+          "weights": {},
+          "children": {
+            "in_conv": {
+              "type": "Conv2d",
+              "attrs": {
+                "stride": [
+                  1,
+                  1
+                ],
+                "padding": [
+                  0,
+                  0
+                ],
+                "groups": 1,
+                "dilation": 1
+              },
+              "weights": {
+                "weight": "neck.insert_conv_0.in_conv.weight"
+              },
+              "children": {}
+            },
+            "squeeze_excitation_block": {
+              "type": "SEModule",
+              "attrs": {},
+              "weights": {},
+              "children": {
+                "conv1": {
+                  "type": "Conv2d",
+                  "attrs": {
+                    "stride": [
+                      1,
+                      1
+                    ],
+                    "padding": [
+                      0,
+                      0
+                    ],
+                    "groups": 1,
+                    "dilation": 1
+                  },
+                  "weights": {
+                    "weight": "neck.insert_conv_0.squeeze_excitation_block.conv1.weight",
+                    "bias": "neck.insert_conv_0.squeeze_excitation_block.conv1.bias"
+                  },
+                  "children": {}
+                },
+                "conv2": {
+                  "type": "Conv2d",
+                  "attrs": {
+                    "stride": [
+                      1,
+                      1
+                    ],
+                    "padding": [
+                      0,
+                      0
+                    ],
+                    "groups": 1,
+                    "dilation": 1
+                  },
+                  "weights": {
+                    "weight": "neck.insert_conv_0.squeeze_excitation_block.conv2.weight",
+                    "bias": "neck.insert_conv_0.squeeze_excitation_block.conv2.bias"
+                  },
+                  "children": {}
+                },
+                "relu": {
+                  "type": "ReLU",
+                  "attrs": {},
+                  "weights": {},
+                  "children": {}
+                },
+                "hardsigmoid": {
+                  "type": "HardSigmoidClip",
+                  "attrs": {},
+                  "weights": {},
+                  "children": {}
+                }
+              }
+            }
+          }
+        },
+        "input_conv_0": {
+          "type": "RepLKInputConv",
+          "attrs": {},
+          "weights": {},
+          "children": {
+            "conv": {
+              "type": "Conv2d",
+              "attrs": {
+                "stride": [
+                  1,
+                  1
+                ],
+                "padding": [
+                  3,
+                  3
+                ],
+                "groups": 96,
+                "dilation": 1
+              },
+              "weights": {
+                "weight": "neck.input_conv_0.conv.weight",
+                "bias": "neck.input_conv_0.conv.bias"
+              },
+              "children": {}
+            },
+            "pw": {
+              "type": "Conv2d",
+              "attrs": {
+                "stride": [
+                  1,
+                  1
+                ],
+                "padding": [
+                  0,
+                  0
+                ],
+                "groups": 1,
+                "dilation": 1
+              },
+              "weights": {
+                "weight": "neck.input_conv_0.pw.weight"
+              },
+              "children": {}
+            },
+            "squeeze_excitation_module": {
+              "type": "SEModule",
+              "attrs": {},
+              "weights": {},
+              "children": {
+                "conv1": {
+                  "type": "Conv2d",
+                  "attrs": {
+                    "stride": [
+                      1,
+                      1
+                    ],
+                    "padding": [
+                      0,
+                      0
+                    ],
+                    "groups": 1,
+                    "dilation": 1
+                  },
+                  "weights": {
+                    "weight": "neck.input_conv_0.squeeze_excitation_module.conv1.weight",
+                    "bias": "neck.input_conv_0.squeeze_excitation_module.conv1.bias"
+                  },
+                  "children": {}
+                },
+                "conv2": {
+                  "type": "Conv2d",
+                  "attrs": {
+                    "stride": [
+                      1,
+                      1
+                    ],
+                    "padding": [
+                      0,
+                      0
+                    ],
+                    "groups": 1,
+                    "dilation": 1
+                  },
+                  "weights": {
+                    "weight": "neck.input_conv_0.squeeze_excitation_module.conv2.weight",
+                    "bias": "neck.input_conv_0.squeeze_excitation_module.conv2.bias"
+                  },
+                  "children": {}
+                },
+                "relu": {
+                  "type": "ReLU",
+                  "attrs": {},
+                  "weights": {},
+                  "children": {}
+                },
+                "hardsigmoid": {
+                  "type": "HardSigmoidClip",
+                  "attrs": {},
+                  "weights": {},
+                  "children": {}
+                }
+              }
+            }
+          }
+        },
+        "insert_conv_1": {
+          "type": "RSELayer",
+          "attrs": {
+            "shortcut": true
+          },
+          "weights": {},
+          "children": {
+            "in_conv": {
+              "type": "Conv2d",
+              "attrs": {
+                "stride": [
+                  1,
+                  1
+                ],
+                "padding": [
+                  0,
+                  0
+                ],
+                "groups": 1,
+                "dilation": 1
+              },
+              "weights": {
+                "weight": "neck.insert_conv_1.in_conv.weight"
+              },
+              "children": {}
+            },
+            "squeeze_excitation_block": {
+              "type": "SEModule",
+              "attrs": {},
+              "weights": {},
+              "children": {
+                "conv1": {
+                  "type": "Conv2d",
+                  "attrs": {
+                    "stride": [
+                      1,
+                      1
+                    ],
+                    "padding": [
+                      0,
+                      0
+                    ],
+                    "groups": 1,
+                    "dilation": 1
+                  },
+                  "weights": {
+                    "weight": "neck.insert_conv_1.squeeze_excitation_block.conv1.weight",
+                    "bias": "neck.insert_conv_1.squeeze_excitation_block.conv1.bias"
+                  },
+                  "children": {}
+                },
+                "conv2": {
+                  "type": "Conv2d",
+                  "attrs": {
+                    "stride": [
+                      1,
+                      1
+                    ],
+                    "padding": [
+                      0,
+                      0
+                    ],
+                    "groups": 1,
+                    "dilation": 1
+                  },
+                  "weights": {
+                    "weight": "neck.insert_conv_1.squeeze_excitation_block.conv2.weight",
+                    "bias": "neck.insert_conv_1.squeeze_excitation_block.conv2.bias"
+                  },
+                  "children": {}
+                },
+                "relu": {
+                  "type": "ReLU",
+                  "attrs": {},
+                  "weights": {},
+                  "children": {}
+                },
+                "hardsigmoid": {
+                  "type": "HardSigmoidClip",
+                  "attrs": {},
+                  "weights": {},
+                  "children": {}
+                }
+              }
+            }
+          }
+        },
+        "input_conv_1": {
+          "type": "RepLKInputConv",
+          "attrs": {},
+          "weights": {},
+          "children": {
+            "conv": {
+              "type": "Conv2d",
+              "attrs": {
+                "stride": [
+                  1,
+                  1
+                ],
+                "padding": [
+                  3,
+                  3
+                ],
+                "groups": 96,
+                "dilation": 1
+              },
+              "weights": {
+                "weight": "neck.input_conv_1.conv.weight",
+                "bias": "neck.input_conv_1.conv.bias"
+              },
+              "children": {}
+            },
+            "pw": {
+              "type": "Conv2d",
+              "attrs": {
+                "stride": [
+                  1,
+                  1
+                ],
+                "padding": [
+                  0,
+                  0
+                ],
+                "groups": 1,
+                "dilation": 1
+              },
+              "weights": {
+                "weight": "neck.input_conv_1.pw.weight"
+              },
+              "children": {}
+            },
+            "squeeze_excitation_module": {
+              "type": "SEModule",
+              "attrs": {},
+              "weights": {},
+              "children": {
+                "conv1": {
+                  "type": "Conv2d",
+                  "attrs": {
+                    "stride": [
+                      1,
+                      1
+                    ],
+                    "padding": [
+                      0,
+                      0
+                    ],
+                    "groups": 1,
+                    "dilation": 1
+                  },
+                  "weights": {
+                    "weight": "neck.input_conv_1.squeeze_excitation_module.conv1.weight",
+                    "bias": "neck.input_conv_1.squeeze_excitation_module.conv1.bias"
+                  },
+                  "children": {}
+                },
+                "conv2": {
+                  "type": "Conv2d",
+                  "attrs": {
+                    "stride": [
+                      1,
+                      1
+                    ],
+                    "padding": [
+                      0,
+                      0
+                    ],
+                    "groups": 1,
+                    "dilation": 1
+                  },
+                  "weights": {
+                    "weight": "neck.input_conv_1.squeeze_excitation_module.conv2.weight",
+                    "bias": "neck.input_conv_1.squeeze_excitation_module.conv2.bias"
+                  },
+                  "children": {}
+                },
+                "relu": {
+                  "type": "ReLU",
+                  "attrs": {},
+                  "weights": {},
+                  "children": {}
+                },
+                "hardsigmoid": {
+                  "type": "HardSigmoidClip",
+                  "attrs": {},
+                  "weights": {},
+                  "children": {}
+                }
+              }
+            }
+          }
+        },
+        "insert_conv_2": {
+          "type": "RSELayer",
+          "attrs": {
+            "shortcut": true
+          },
+          "weights": {},
+          "children": {
+            "in_conv": {
+              "type": "Conv2d",
+              "attrs": {
+                "stride": [
+                  1,
+                  1
+                ],
+                "padding": [
+                  0,
+                  0
+                ],
+                "groups": 1,
+                "dilation": 1
+              },
+              "weights": {
+                "weight": "neck.insert_conv_2.in_conv.weight"
+              },
+              "children": {}
+            },
+            "squeeze_excitation_block": {
+              "type": "SEModule",
+              "attrs": {},
+              "weights": {},
+              "children": {
+                "conv1": {
+                  "type": "Conv2d",
+                  "attrs": {
+                    "stride": [
+                      1,
+                      1
+                    ],
+                    "padding": [
+                      0,
+                      0
+                    ],
+                    "groups": 1,
+                    "dilation": 1
+                  },
+                  "weights": {
+                    "weight": "neck.insert_conv_2.squeeze_excitation_block.conv1.weight",
+                    "bias": "neck.insert_conv_2.squeeze_excitation_block.conv1.bias"
+                  },
+                  "children": {}
+                },
+                "conv2": {
+                  "type": "Conv2d",
+                  "attrs": {
+                    "stride": [
+                      1,
+                      1
+                    ],
+                    "padding": [
+                      0,
+                      0
+                    ],
+                    "groups": 1,
+                    "dilation": 1
+                  },
+                  "weights": {
+                    "weight": "neck.insert_conv_2.squeeze_excitation_block.conv2.weight",
+                    "bias": "neck.insert_conv_2.squeeze_excitation_block.conv2.bias"
+                  },
+                  "children": {}
+                },
+                "relu": {
+                  "type": "ReLU",
+                  "attrs": {},
+                  "weights": {},
+                  "children": {}
+                },
+                "hardsigmoid": {
+                  "type": "HardSigmoidClip",
+                  "attrs": {},
+                  "weights": {},
+                  "children": {}
+                }
+              }
+            }
+          }
+        },
+        "input_conv_2": {
+          "type": "RepLKInputConv",
+          "attrs": {},
+          "weights": {},
+          "children": {
+            "conv": {
+              "type": "Conv2d",
+              "attrs": {
+                "stride": [
+                  1,
+                  1
+                ],
+                "padding": [
+                  3,
+                  3
+                ],
+                "groups": 96,
+                "dilation": 1
+              },
+              "weights": {
+                "weight": "neck.input_conv_2.conv.weight",
+                "bias": "neck.input_conv_2.conv.bias"
+              },
+              "children": {}
+            },
+            "pw": {
+              "type": "Conv2d",
+              "attrs": {
+                "stride": [
+                  1,
+                  1
+                ],
+                "padding": [
+                  0,
+                  0
+                ],
+                "groups": 1,
+                "dilation": 1
+              },
+              "weights": {
+                "weight": "neck.input_conv_2.pw.weight"
+              },
+              "children": {}
+            },
+            "squeeze_excitation_module": {
+              "type": "SEModule",
+              "attrs": {},
+              "weights": {},
+              "children": {
+                "conv1": {
+                  "type": "Conv2d",
+                  "attrs": {
+                    "stride": [
+                      1,
+                      1
+                    ],
+                    "padding": [
+                      0,
+                      0
+                    ],
+                    "groups": 1,
+                    "dilation": 1
+                  },
+                  "weights": {
+                    "weight": "neck.input_conv_2.squeeze_excitation_module.conv1.weight",
+                    "bias": "neck.input_conv_2.squeeze_excitation_module.conv1.bias"
+                  },
+                  "children": {}
+                },
+                "conv2": {
+                  "type": "Conv2d",
+                  "attrs": {
+                    "stride": [
+                      1,
+                      1
+                    ],
+                    "padding": [
+                      0,
+                      0
+                    ],
+                    "groups": 1,
+                    "dilation": 1
+                  },
+                  "weights": {
+                    "weight": "neck.input_conv_2.squeeze_excitation_module.conv2.weight",
+                    "bias": "neck.input_conv_2.squeeze_excitation_module.conv2.bias"
+                  },
+                  "children": {}
+                },
+                "relu": {
+                  "type": "ReLU",
+                  "attrs": {},
+                  "weights": {},
+                  "children": {}
+                },
+                "hardsigmoid": {
+                  "type": "HardSigmoidClip",
+                  "attrs": {},
+                  "weights": {},
+                  "children": {}
+                }
+              }
+            }
+          }
+        },
+        "insert_conv_3": {
+          "type": "RSELayer",
+          "attrs": {
+            "shortcut": true
+          },
+          "weights": {},
+          "children": {
+            "in_conv": {
+              "type": "Conv2d",
+              "attrs": {
+                "stride": [
+                  1,
+                  1
+                ],
+                "padding": [
+                  0,
+                  0
+                ],
+                "groups": 1,
+                "dilation": 1
+              },
+              "weights": {
+                "weight": "neck.insert_conv_3.in_conv.weight"
+              },
+              "children": {}
+            },
+            "squeeze_excitation_block": {
+              "type": "SEModule",
+              "attrs": {},
+              "weights": {},
+              "children": {
+                "conv1": {
+                  "type": "Conv2d",
+                  "attrs": {
+                    "stride": [
+                      1,
+                      1
+                    ],
+                    "padding": [
+                      0,
+                      0
+                    ],
+                    "groups": 1,
+                    "dilation": 1
+                  },
+                  "weights": {
+                    "weight": "neck.insert_conv_3.squeeze_excitation_block.conv1.weight",
+                    "bias": "neck.insert_conv_3.squeeze_excitation_block.conv1.bias"
+                  },
+                  "children": {}
+                },
+                "conv2": {
+                  "type": "Conv2d",
+                  "attrs": {
+                    "stride": [
+                      1,
+                      1
+                    ],
+                    "padding": [
+                      0,
+                      0
+                    ],
+                    "groups": 1,
+                    "dilation": 1
+                  },
+                  "weights": {
+                    "weight": "neck.insert_conv_3.squeeze_excitation_block.conv2.weight",
+                    "bias": "neck.insert_conv_3.squeeze_excitation_block.conv2.bias"
+                  },
+                  "children": {}
+                },
+                "relu": {
+                  "type": "ReLU",
+                  "attrs": {},
+                  "weights": {},
+                  "children": {}
+                },
+                "hardsigmoid": {
+                  "type": "HardSigmoidClip",
+                  "attrs": {},
+                  "weights": {},
+                  "children": {}
+                }
+              }
+            }
+          }
+        },
+        "input_conv_3": {
+          "type": "RepLKInputConv",
+          "attrs": {},
+          "weights": {},
+          "children": {
+            "conv": {
+              "type": "Conv2d",
+              "attrs": {
+                "stride": [
+                  1,
+                  1
+                ],
+                "padding": [
+                  3,
+                  3
+                ],
+                "groups": 96,
+                "dilation": 1
+              },
+              "weights": {
+                "weight": "neck.input_conv_3.conv.weight",
+                "bias": "neck.input_conv_3.conv.bias"
+              },
+              "children": {}
+            },
+            "pw": {
+              "type": "Conv2d",
+              "attrs": {
+                "stride": [
+                  1,
+                  1
+                ],
+                "padding": [
+                  0,
+                  0
+                ],
+                "groups": 1,
+                "dilation": 1
+              },
+              "weights": {
+                "weight": "neck.input_conv_3.pw.weight"
+              },
+              "children": {}
+            },
+            "squeeze_excitation_module": {
+              "type": "SEModule",
+              "attrs": {},
+              "weights": {},
+              "children": {
+                "conv1": {
+                  "type": "Conv2d",
+                  "attrs": {
+                    "stride": [
+                      1,
+                      1
+                    ],
+                    "padding": [
+                      0,
+                      0
+                    ],
+                    "groups": 1,
+                    "dilation": 1
+                  },
+                  "weights": {
+                    "weight": "neck.input_conv_3.squeeze_excitation_module.conv1.weight",
+                    "bias": "neck.input_conv_3.squeeze_excitation_module.conv1.bias"
+                  },
+                  "children": {}
+                },
+                "conv2": {
+                  "type": "Conv2d",
+                  "attrs": {
+                    "stride": [
+                      1,
+                      1
+                    ],
+                    "padding": [
+                      0,
+                      0
+                    ],
+                    "groups": 1,
+                    "dilation": 1
+                  },
+                  "weights": {
+                    "weight": "neck.input_conv_3.squeeze_excitation_module.conv2.weight",
+                    "bias": "neck.input_conv_3.squeeze_excitation_module.conv2.bias"
+                  },
+                  "children": {}
+                },
+                "relu": {
+                  "type": "ReLU",
+                  "attrs": {},
+                  "weights": {},
+                  "children": {}
+                },
+                "hardsigmoid": {
+                  "type": "HardSigmoidClip",
+                  "attrs": {},
+                  "weights": {},
+                  "children": {}
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "head": {
+      "type": "DBHead",
+      "attrs": {},
+      "weights": {},
+      "children": {
+        "conv_down": {
+          "type": "ConvNormAct",
+          "attrs": {},
+          "weights": {},
+          "children": {
+            "conv": {
+              "type": "Conv2d",
+              "attrs": {
+                "stride": [
+                  1,
+                  1
+                ],
+                "padding": [
+                  1,
+                  1
+                ],
+                "groups": 1,
+                "dilation": 1
+              },
+              "weights": {
+                "weight": "head.conv_down.conv.weight",
+                "bias": "head.conv_down.conv.bias"
+              },
+              "children": {}
+            },
+            "act": {
+              "type": "ReLU",
+              "attrs": {},
+              "weights": {},
+              "children": {}
+            }
+          }
+        },
+        "conv_up": {
+          "type": "ConvTransposeNormAct",
+          "attrs": {},
+          "weights": {},
+          "children": {
+            "conv": {
+              "type": "ConvTranspose2d",
+              "attrs": {
+                "stride": [
+                  2,
+                  2
+                ],
+                "padding": [
+                  0,
+                  0
+                ],
+                "dilation": 1,
+                "output_padding": [
+                  0,
+                  0
+                ]
+              },
+              "weights": {
+                "weight": "head.conv_up.conv.weight",
+                "bias": "head.conv_up.conv.bias"
+              },
+              "children": {}
+            },
+            "act": {
+              "type": "ReLU",
+              "attrs": {},
+              "weights": {},
+              "children": {}
+            }
+          }
+        },
+        "conv_final": {
+          "type": "ConvTranspose2d",
+          "attrs": {
+            "stride": [
+              2,
+              2
+            ],
+            "padding": [
+              0,
+              0
+            ],
+            "dilation": 1,
+            "output_padding": [
+              0,
+              0
+            ]
+          },
+          "weights": {
+            "weight": "head.conv_final.weight",
+            "bias": "head.conv_final.bias"
+          },
+          "children": {}
+        }
+      }
+    }
+  }
+}

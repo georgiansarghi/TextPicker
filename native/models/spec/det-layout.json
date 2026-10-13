@@ -1,0 +1,1396 @@
+{
+  "source_weights": "1e7a9102a01191a080f0bdd87286f27e6739e2492b46cc241422a2ea4fcf7b68",
+  "source_graph": "30a0075044bc075cd939f61fe8e0a859c5d2ba784b90766e276d45d8d24768be",
+  "weights_sha256": "05372be995cc3ee1073d729255eff10cb8f8c0f439532b30f799196846c33406",
+  "tensors": {
+    "backbone.encoder.convolution.stem1.conv.weight": {
+      "offset": 64,
+      "shape": [
+        24,
+        3,
+        3,
+        3
+      ],
+      "bytes": 2592
+    },
+    "backbone.encoder.convolution.stem1.conv.bias": {
+      "offset": 2688,
+      "shape": [
+        24
+      ],
+      "bytes": 96
+    },
+    "backbone.encoder.convolution.stem2a.conv.weight": {
+      "offset": 2816,
+      "shape": [
+        12,
+        24,
+        2,
+        2
+      ],
+      "bytes": 4608
+    },
+    "backbone.encoder.convolution.stem2a.conv.bias": {
+      "offset": 7424,
+      "shape": [
+        12
+      ],
+      "bytes": 48
+    },
+    "backbone.encoder.convolution.stem2b.conv.weight": {
+      "offset": 7488,
+      "shape": [
+        24,
+        12,
+        2,
+        2
+      ],
+      "bytes": 4608
+    },
+    "backbone.encoder.convolution.stem2b.conv.bias": {
+      "offset": 12096,
+      "shape": [
+        24
+      ],
+      "bytes": 96
+    },
+    "backbone.encoder.convolution.stem3.conv.weight": {
+      "offset": 12224,
+      "shape": [
+        24,
+        48,
+        3,
+        3
+      ],
+      "bytes": 41472
+    },
+    "backbone.encoder.convolution.stem3.conv.bias": {
+      "offset": 53696,
+      "shape": [
+        24
+      ],
+      "bytes": 96
+    },
+    "backbone.encoder.convolution.stem4.conv.weight": {
+      "offset": 53824,
+      "shape": [
+        48,
+        24,
+        1,
+        1
+      ],
+      "bytes": 4608
+    },
+    "backbone.encoder.convolution.stem4.conv.bias": {
+      "offset": 58432,
+      "shape": [
+        48
+      ],
+      "bytes": 192
+    },
+    "backbone.encoder.blocks_0.blocks_0.token_conv.weight": {
+      "offset": 58624,
+      "shape": [
+        48,
+        1,
+        3,
+        3
+      ],
+      "bytes": 1728
+    },
+    "backbone.encoder.blocks_0.blocks_0.token_conv.bias": {
+      "offset": 60352,
+      "shape": [
+        48
+      ],
+      "bytes": 192
+    },
+    "backbone.encoder.blocks_0.blocks_0.token_squeeze_excitation.conv1.weight": {
+      "offset": 60544,
+      "shape": [
+        12,
+        48,
+        1,
+        1
+      ],
+      "bytes": 2304
+    },
+    "backbone.encoder.blocks_0.blocks_0.token_squeeze_excitation.conv1.bias": {
+      "offset": 62848,
+      "shape": [
+        12
+      ],
+      "bytes": 48
+    },
+    "backbone.encoder.blocks_0.blocks_0.token_squeeze_excitation.conv2.weight": {
+      "offset": 62912,
+      "shape": [
+        48,
+        12,
+        1,
+        1
+      ],
+      "bytes": 2304
+    },
+    "backbone.encoder.blocks_0.blocks_0.token_squeeze_excitation.conv2.bias": {
+      "offset": 65216,
+      "shape": [
+        48
+      ],
+      "bytes": 192
+    },
+    "backbone.encoder.blocks_0.blocks_0.channel_conv1.conv.weight": {
+      "offset": 65408,
+      "shape": [
+        96,
+        48,
+        1,
+        1
+      ],
+      "bytes": 18432
+    },
+    "backbone.encoder.blocks_0.blocks_0.channel_conv1.conv.bias": {
+      "offset": 83840,
+      "shape": [
+        96
+      ],
+      "bytes": 384
+    },
+    "backbone.encoder.blocks_0.blocks_0.channel_conv2.conv.weight": {
+      "offset": 84224,
+      "shape": [
+        48,
+        96,
+        1,
+        1
+      ],
+      "bytes": 18432
+    },
+    "backbone.encoder.blocks_0.blocks_0.channel_conv2.conv.bias": {
+      "offset": 102656,
+      "shape": [
+        48
+      ],
+      "bytes": 192
+    },
+    "backbone.encoder.blocks_0.blocks_1.token_conv.weight": {
+      "offset": 102848,
+      "shape": [
+        48,
+        1,
+        3,
+        3
+      ],
+      "bytes": 1728
+    },
+    "backbone.encoder.blocks_0.blocks_1.token_conv.bias": {
+      "offset": 104576,
+      "shape": [
+        48
+      ],
+      "bytes": 192
+    },
+    "backbone.encoder.blocks_0.blocks_1.channel_conv1.conv.weight": {
+      "offset": 104768,
+      "shape": [
+        96,
+        48,
+        1,
+        1
+      ],
+      "bytes": 18432
+    },
+    "backbone.encoder.blocks_0.blocks_1.channel_conv1.conv.bias": {
+      "offset": 123200,
+      "shape": [
+        96
+      ],
+      "bytes": 384
+    },
+    "backbone.encoder.blocks_0.blocks_1.channel_conv2.conv.weight": {
+      "offset": 123584,
+      "shape": [
+        48,
+        96,
+        1,
+        1
+      ],
+      "bytes": 18432
+    },
+    "backbone.encoder.blocks_0.blocks_1.channel_conv2.conv.bias": {
+      "offset": 142016,
+      "shape": [
+        48
+      ],
+      "bytes": 192
+    },
+    "backbone.encoder.blocks_1.blocks_0.token_conv.conv.weight": {
+      "offset": 142208,
+      "shape": [
+        48,
+        1,
+        3,
+        3
+      ],
+      "bytes": 1728
+    },
+    "backbone.encoder.blocks_1.blocks_0.token_conv.conv.bias": {
+      "offset": 143936,
+      "shape": [
+        48
+      ],
+      "bytes": 192
+    },
+    "backbone.encoder.blocks_1.blocks_0.channel_conv1.conv.weight": {
+      "offset": 144128,
+      "shape": [
+        96,
+        48,
+        1,
+        1
+      ],
+      "bytes": 18432
+    },
+    "backbone.encoder.blocks_1.blocks_0.channel_conv1.conv.bias": {
+      "offset": 162560,
+      "shape": [
+        96
+      ],
+      "bytes": 384
+    },
+    "backbone.encoder.blocks_1.blocks_0.channel_conv2.conv.weight": {
+      "offset": 162944,
+      "shape": [
+        96,
+        96,
+        1,
+        1
+      ],
+      "bytes": 36864
+    },
+    "backbone.encoder.blocks_1.blocks_0.channel_conv2.conv.bias": {
+      "offset": 199808,
+      "shape": [
+        96
+      ],
+      "bytes": 384
+    },
+    "backbone.encoder.blocks_1.blocks_1.token_conv.weight": {
+      "offset": 200192,
+      "shape": [
+        96,
+        1,
+        3,
+        3
+      ],
+      "bytes": 3456
+    },
+    "backbone.encoder.blocks_1.blocks_1.token_conv.bias": {
+      "offset": 203648,
+      "shape": [
+        96
+      ],
+      "bytes": 384
+    },
+    "backbone.encoder.blocks_1.blocks_1.token_squeeze_excitation.conv1.weight": {
+      "offset": 204032,
+      "shape": [
+        24,
+        96,
+        1,
+        1
+      ],
+      "bytes": 9216
+    },
+    "backbone.encoder.blocks_1.blocks_1.token_squeeze_excitation.conv1.bias": {
+      "offset": 213248,
+      "shape": [
+        24
+      ],
+      "bytes": 96
+    },
+    "backbone.encoder.blocks_1.blocks_1.token_squeeze_excitation.conv2.weight": {
+      "offset": 213376,
+      "shape": [
+        96,
+        24,
+        1,
+        1
+      ],
+      "bytes": 9216
+    },
+    "backbone.encoder.blocks_1.blocks_1.token_squeeze_excitation.conv2.bias": {
+      "offset": 222592,
+      "shape": [
+        96
+      ],
+      "bytes": 384
+    },
+    "backbone.encoder.blocks_1.blocks_1.channel_conv1.conv.weight": {
+      "offset": 222976,
+      "shape": [
+        192,
+        96,
+        1,
+        1
+      ],
+      "bytes": 73728
+    },
+    "backbone.encoder.blocks_1.blocks_1.channel_conv1.conv.bias": {
+      "offset": 296704,
+      "shape": [
+        192
+      ],
+      "bytes": 768
+    },
+    "backbone.encoder.blocks_1.blocks_1.channel_conv2.conv.weight": {
+      "offset": 297472,
+      "shape": [
+        96,
+        192,
+        1,
+        1
+      ],
+      "bytes": 73728
+    },
+    "backbone.encoder.blocks_1.blocks_1.channel_conv2.conv.bias": {
+      "offset": 371200,
+      "shape": [
+        96
+      ],
+      "bytes": 384
+    },
+    "backbone.encoder.blocks_1.blocks_2.token_conv.weight": {
+      "offset": 371584,
+      "shape": [
+        96,
+        1,
+        3,
+        3
+      ],
+      "bytes": 3456
+    },
+    "backbone.encoder.blocks_1.blocks_2.token_conv.bias": {
+      "offset": 375040,
+      "shape": [
+        96
+      ],
+      "bytes": 384
+    },
+    "backbone.encoder.blocks_1.blocks_2.channel_conv1.conv.weight": {
+      "offset": 375424,
+      "shape": [
+        192,
+        96,
+        1,
+        1
+      ],
+      "bytes": 73728
+    },
+    "backbone.encoder.blocks_1.blocks_2.channel_conv1.conv.bias": {
+      "offset": 449152,
+      "shape": [
+        192
+      ],
+      "bytes": 768
+    },
+    "backbone.encoder.blocks_1.blocks_2.channel_conv2.conv.weight": {
+      "offset": 449920,
+      "shape": [
+        96,
+        192,
+        1,
+        1
+      ],
+      "bytes": 73728
+    },
+    "backbone.encoder.blocks_1.blocks_2.channel_conv2.conv.bias": {
+      "offset": 523648,
+      "shape": [
+        96
+      ],
+      "bytes": 384
+    },
+    "backbone.encoder.blocks_2.blocks_0.token_conv.conv.weight": {
+      "offset": 524032,
+      "shape": [
+        96,
+        1,
+        3,
+        3
+      ],
+      "bytes": 3456
+    },
+    "backbone.encoder.blocks_2.blocks_0.token_conv.conv.bias": {
+      "offset": 527488,
+      "shape": [
+        96
+      ],
+      "bytes": 384
+    },
+    "backbone.encoder.blocks_2.blocks_0.channel_conv1.conv.weight": {
+      "offset": 527872,
+      "shape": [
+        192,
+        96,
+        1,
+        1
+      ],
+      "bytes": 73728
+    },
+    "backbone.encoder.blocks_2.blocks_0.channel_conv1.conv.bias": {
+      "offset": 601600,
+      "shape": [
+        192
+      ],
+      "bytes": 768
+    },
+    "backbone.encoder.blocks_2.blocks_0.channel_conv2.conv.weight": {
+      "offset": 602368,
+      "shape": [
+        192,
+        192,
+        1,
+        1
+      ],
+      "bytes": 147456
+    },
+    "backbone.encoder.blocks_2.blocks_0.channel_conv2.conv.bias": {
+      "offset": 749824,
+      "shape": [
+        192
+      ],
+      "bytes": 768
+    },
+    "backbone.encoder.blocks_2.blocks_1.token_conv.weight": {
+      "offset": 750592,
+      "shape": [
+        192,
+        1,
+        3,
+        3
+      ],
+      "bytes": 6912
+    },
+    "backbone.encoder.blocks_2.blocks_1.token_conv.bias": {
+      "offset": 757504,
+      "shape": [
+        192
+      ],
+      "bytes": 768
+    },
+    "backbone.encoder.blocks_2.blocks_1.token_squeeze_excitation.conv1.weight": {
+      "offset": 758272,
+      "shape": [
+        48,
+        192,
+        1,
+        1
+      ],
+      "bytes": 36864
+    },
+    "backbone.encoder.blocks_2.blocks_1.token_squeeze_excitation.conv1.bias": {
+      "offset": 795136,
+      "shape": [
+        48
+      ],
+      "bytes": 192
+    },
+    "backbone.encoder.blocks_2.blocks_1.token_squeeze_excitation.conv2.weight": {
+      "offset": 795328,
+      "shape": [
+        192,
+        48,
+        1,
+        1
+      ],
+      "bytes": 36864
+    },
+    "backbone.encoder.blocks_2.blocks_1.token_squeeze_excitation.conv2.bias": {
+      "offset": 832192,
+      "shape": [
+        192
+      ],
+      "bytes": 768
+    },
+    "backbone.encoder.blocks_2.blocks_1.channel_conv1.conv.weight": {
+      "offset": 832960,
+      "shape": [
+        384,
+        192,
+        1,
+        1
+      ],
+      "bytes": 294912
+    },
+    "backbone.encoder.blocks_2.blocks_1.channel_conv1.conv.bias": {
+      "offset": 1127872,
+      "shape": [
+        384
+      ],
+      "bytes": 1536
+    },
+    "backbone.encoder.blocks_2.blocks_1.channel_conv2.conv.weight": {
+      "offset": 1129408,
+      "shape": [
+        192,
+        384,
+        1,
+        1
+      ],
+      "bytes": 294912
+    },
+    "backbone.encoder.blocks_2.blocks_1.channel_conv2.conv.bias": {
+      "offset": 1424320,
+      "shape": [
+        192
+      ],
+      "bytes": 768
+    },
+    "backbone.encoder.blocks_2.blocks_2.token_conv.weight": {
+      "offset": 1425088,
+      "shape": [
+        192,
+        1,
+        3,
+        3
+      ],
+      "bytes": 6912
+    },
+    "backbone.encoder.blocks_2.blocks_2.token_conv.bias": {
+      "offset": 1432000,
+      "shape": [
+        192
+      ],
+      "bytes": 768
+    },
+    "backbone.encoder.blocks_2.blocks_2.channel_conv1.conv.weight": {
+      "offset": 1432768,
+      "shape": [
+        384,
+        192,
+        1,
+        1
+      ],
+      "bytes": 294912
+    },
+    "backbone.encoder.blocks_2.blocks_2.channel_conv1.conv.bias": {
+      "offset": 1727680,
+      "shape": [
+        384
+      ],
+      "bytes": 1536
+    },
+    "backbone.encoder.blocks_2.blocks_2.channel_conv2.conv.weight": {
+      "offset": 1729216,
+      "shape": [
+        192,
+        384,
+        1,
+        1
+      ],
+      "bytes": 294912
+    },
+    "backbone.encoder.blocks_2.blocks_2.channel_conv2.conv.bias": {
+      "offset": 2024128,
+      "shape": [
+        192
+      ],
+      "bytes": 768
+    },
+    "backbone.encoder.blocks_2.blocks_3.token_conv.weight": {
+      "offset": 2024896,
+      "shape": [
+        192,
+        1,
+        3,
+        3
+      ],
+      "bytes": 6912
+    },
+    "backbone.encoder.blocks_2.blocks_3.token_conv.bias": {
+      "offset": 2031808,
+      "shape": [
+        192
+      ],
+      "bytes": 768
+    },
+    "backbone.encoder.blocks_2.blocks_3.token_squeeze_excitation.conv1.weight": {
+      "offset": 2032576,
+      "shape": [
+        48,
+        192,
+        1,
+        1
+      ],
+      "bytes": 36864
+    },
+    "backbone.encoder.blocks_2.blocks_3.token_squeeze_excitation.conv1.bias": {
+      "offset": 2069440,
+      "shape": [
+        48
+      ],
+      "bytes": 192
+    },
+    "backbone.encoder.blocks_2.blocks_3.token_squeeze_excitation.conv2.weight": {
+      "offset": 2069632,
+      "shape": [
+        192,
+        48,
+        1,
+        1
+      ],
+      "bytes": 36864
+    },
+    "backbone.encoder.blocks_2.blocks_3.token_squeeze_excitation.conv2.bias": {
+      "offset": 2106496,
+      "shape": [
+        192
+      ],
+      "bytes": 768
+    },
+    "backbone.encoder.blocks_2.blocks_3.channel_conv1.conv.weight": {
+      "offset": 2107264,
+      "shape": [
+        384,
+        192,
+        1,
+        1
+      ],
+      "bytes": 294912
+    },
+    "backbone.encoder.blocks_2.blocks_3.channel_conv1.conv.bias": {
+      "offset": 2402176,
+      "shape": [
+        384
+      ],
+      "bytes": 1536
+    },
+    "backbone.encoder.blocks_2.blocks_3.channel_conv2.conv.weight": {
+      "offset": 2403712,
+      "shape": [
+        192,
+        384,
+        1,
+        1
+      ],
+      "bytes": 294912
+    },
+    "backbone.encoder.blocks_2.blocks_3.channel_conv2.conv.bias": {
+      "offset": 2698624,
+      "shape": [
+        192
+      ],
+      "bytes": 768
+    },
+    "backbone.encoder.blocks_2.blocks_4.token_conv.weight": {
+      "offset": 2699392,
+      "shape": [
+        192,
+        1,
+        3,
+        3
+      ],
+      "bytes": 6912
+    },
+    "backbone.encoder.blocks_2.blocks_4.token_conv.bias": {
+      "offset": 2706304,
+      "shape": [
+        192
+      ],
+      "bytes": 768
+    },
+    "backbone.encoder.blocks_2.blocks_4.channel_conv1.conv.weight": {
+      "offset": 2707072,
+      "shape": [
+        384,
+        192,
+        1,
+        1
+      ],
+      "bytes": 294912
+    },
+    "backbone.encoder.blocks_2.blocks_4.channel_conv1.conv.bias": {
+      "offset": 3001984,
+      "shape": [
+        384
+      ],
+      "bytes": 1536
+    },
+    "backbone.encoder.blocks_2.blocks_4.channel_conv2.conv.weight": {
+      "offset": 3003520,
+      "shape": [
+        192,
+        384,
+        1,
+        1
+      ],
+      "bytes": 294912
+    },
+    "backbone.encoder.blocks_2.blocks_4.channel_conv2.conv.bias": {
+      "offset": 3298432,
+      "shape": [
+        192
+      ],
+      "bytes": 768
+    },
+    "backbone.encoder.blocks_3.blocks_0.token_conv.conv.weight": {
+      "offset": 3299200,
+      "shape": [
+        192,
+        1,
+        3,
+        3
+      ],
+      "bytes": 6912
+    },
+    "backbone.encoder.blocks_3.blocks_0.token_conv.conv.bias": {
+      "offset": 3306112,
+      "shape": [
+        192
+      ],
+      "bytes": 768
+    },
+    "backbone.encoder.blocks_3.blocks_0.channel_conv1.conv.weight": {
+      "offset": 3306880,
+      "shape": [
+        384,
+        192,
+        1,
+        1
+      ],
+      "bytes": 294912
+    },
+    "backbone.encoder.blocks_3.blocks_0.channel_conv1.conv.bias": {
+      "offset": 3601792,
+      "shape": [
+        384
+      ],
+      "bytes": 1536
+    },
+    "backbone.encoder.blocks_3.blocks_0.channel_conv2.conv.weight": {
+      "offset": 3603328,
+      "shape": [
+        384,
+        384,
+        1,
+        1
+      ],
+      "bytes": 589824
+    },
+    "backbone.encoder.blocks_3.blocks_0.channel_conv2.conv.bias": {
+      "offset": 4193152,
+      "shape": [
+        384
+      ],
+      "bytes": 1536
+    },
+    "backbone.encoder.blocks_3.blocks_1.token_conv.weight": {
+      "offset": 4194688,
+      "shape": [
+        384,
+        1,
+        3,
+        3
+      ],
+      "bytes": 13824
+    },
+    "backbone.encoder.blocks_3.blocks_1.token_conv.bias": {
+      "offset": 4208512,
+      "shape": [
+        384
+      ],
+      "bytes": 1536
+    },
+    "backbone.encoder.blocks_3.blocks_1.token_squeeze_excitation.conv1.weight": {
+      "offset": 4210048,
+      "shape": [
+        96,
+        384,
+        1,
+        1
+      ],
+      "bytes": 147456
+    },
+    "backbone.encoder.blocks_3.blocks_1.token_squeeze_excitation.conv1.bias": {
+      "offset": 4357504,
+      "shape": [
+        96
+      ],
+      "bytes": 384
+    },
+    "backbone.encoder.blocks_3.blocks_1.token_squeeze_excitation.conv2.weight": {
+      "offset": 4357888,
+      "shape": [
+        384,
+        96,
+        1,
+        1
+      ],
+      "bytes": 147456
+    },
+    "backbone.encoder.blocks_3.blocks_1.token_squeeze_excitation.conv2.bias": {
+      "offset": 4505344,
+      "shape": [
+        384
+      ],
+      "bytes": 1536
+    },
+    "backbone.encoder.blocks_3.blocks_1.channel_conv1.conv.weight": {
+      "offset": 4506880,
+      "shape": [
+        768,
+        384,
+        1,
+        1
+      ],
+      "bytes": 1179648
+    },
+    "backbone.encoder.blocks_3.blocks_1.channel_conv1.conv.bias": {
+      "offset": 5686528,
+      "shape": [
+        768
+      ],
+      "bytes": 3072
+    },
+    "backbone.encoder.blocks_3.blocks_1.channel_conv2.conv.weight": {
+      "offset": 5689600,
+      "shape": [
+        384,
+        768,
+        1,
+        1
+      ],
+      "bytes": 1179648
+    },
+    "backbone.encoder.blocks_3.blocks_1.channel_conv2.conv.bias": {
+      "offset": 6869248,
+      "shape": [
+        384
+      ],
+      "bytes": 1536
+    },
+    "backbone.encoder.blocks_3.blocks_2.token_conv.weight": {
+      "offset": 6870784,
+      "shape": [
+        384,
+        1,
+        3,
+        3
+      ],
+      "bytes": 13824
+    },
+    "backbone.encoder.blocks_3.blocks_2.token_conv.bias": {
+      "offset": 6884608,
+      "shape": [
+        384
+      ],
+      "bytes": 1536
+    },
+    "backbone.encoder.blocks_3.blocks_2.channel_conv1.conv.weight": {
+      "offset": 6886144,
+      "shape": [
+        768,
+        384,
+        1,
+        1
+      ],
+      "bytes": 1179648
+    },
+    "backbone.encoder.blocks_3.blocks_2.channel_conv1.conv.bias": {
+      "offset": 8065792,
+      "shape": [
+        768
+      ],
+      "bytes": 3072
+    },
+    "backbone.encoder.blocks_3.blocks_2.channel_conv2.conv.weight": {
+      "offset": 8068864,
+      "shape": [
+        384,
+        768,
+        1,
+        1
+      ],
+      "bytes": 1179648
+    },
+    "backbone.encoder.blocks_3.blocks_2.channel_conv2.conv.bias": {
+      "offset": 9248512,
+      "shape": [
+        384
+      ],
+      "bytes": 1536
+    },
+    "neck.insert_conv_0.in_conv.weight": {
+      "offset": 9250048,
+      "shape": [
+        96,
+        48,
+        1,
+        1
+      ],
+      "bytes": 18432
+    },
+    "neck.insert_conv_0.squeeze_excitation_block.conv1.weight": {
+      "offset": 9268480,
+      "shape": [
+        24,
+        96,
+        1,
+        1
+      ],
+      "bytes": 9216
+    },
+    "neck.insert_conv_0.squeeze_excitation_block.conv1.bias": {
+      "offset": 9277696,
+      "shape": [
+        24
+      ],
+      "bytes": 96
+    },
+    "neck.insert_conv_0.squeeze_excitation_block.conv2.weight": {
+      "offset": 9277824,
+      "shape": [
+        96,
+        24,
+        1,
+        1
+      ],
+      "bytes": 9216
+    },
+    "neck.insert_conv_0.squeeze_excitation_block.conv2.bias": {
+      "offset": 9287040,
+      "shape": [
+        96
+      ],
+      "bytes": 384
+    },
+    "neck.input_conv_0.conv.weight": {
+      "offset": 9287424,
+      "shape": [
+        96,
+        1,
+        7,
+        7
+      ],
+      "bytes": 18816
+    },
+    "neck.input_conv_0.conv.bias": {
+      "offset": 9306240,
+      "shape": [
+        96
+      ],
+      "bytes": 384
+    },
+    "neck.input_conv_0.pw.weight": {
+      "offset": 9306624,
+      "shape": [
+        24,
+        96,
+        1,
+        1
+      ],
+      "bytes": 9216
+    },
+    "neck.input_conv_0.squeeze_excitation_module.conv1.weight": {
+      "offset": 9315840,
+      "shape": [
+        6,
+        24,
+        1,
+        1
+      ],
+      "bytes": 576
+    },
+    "neck.input_conv_0.squeeze_excitation_module.conv1.bias": {
+      "offset": 9316416,
+      "shape": [
+        6
+      ],
+      "bytes": 24
+    },
+    "neck.input_conv_0.squeeze_excitation_module.conv2.weight": {
+      "offset": 9316480,
+      "shape": [
+        24,
+        6,
+        1,
+        1
+      ],
+      "bytes": 576
+    },
+    "neck.input_conv_0.squeeze_excitation_module.conv2.bias": {
+      "offset": 9317056,
+      "shape": [
+        24
+      ],
+      "bytes": 96
+    },
+    "neck.insert_conv_1.in_conv.weight": {
+      "offset": 9317184,
+      "shape": [
+        96,
+        96,
+        1,
+        1
+      ],
+      "bytes": 36864
+    },
+    "neck.insert_conv_1.squeeze_excitation_block.conv1.weight": {
+      "offset": 9354048,
+      "shape": [
+        24,
+        96,
+        1,
+        1
+      ],
+      "bytes": 9216
+    },
+    "neck.insert_conv_1.squeeze_excitation_block.conv1.bias": {
+      "offset": 9363264,
+      "shape": [
+        24
+      ],
+      "bytes": 96
+    },
+    "neck.insert_conv_1.squeeze_excitation_block.conv2.weight": {
+      "offset": 9363392,
+      "shape": [
+        96,
+        24,
+        1,
+        1
+      ],
+      "bytes": 9216
+    },
+    "neck.insert_conv_1.squeeze_excitation_block.conv2.bias": {
+      "offset": 9372608,
+      "shape": [
+        96
+      ],
+      "bytes": 384
+    },
+    "neck.input_conv_1.conv.weight": {
+      "offset": 9372992,
+      "shape": [
+        96,
+        1,
+        7,
+        7
+      ],
+      "bytes": 18816
+    },
+    "neck.input_conv_1.conv.bias": {
+      "offset": 9391808,
+      "shape": [
+        96
+      ],
+      "bytes": 384
+    },
+    "neck.input_conv_1.pw.weight": {
+      "offset": 9392192,
+      "shape": [
+        24,
+        96,
+        1,
+        1
+      ],
+      "bytes": 9216
+    },
+    "neck.input_conv_1.squeeze_excitation_module.conv1.weight": {
+      "offset": 9401408,
+      "shape": [
+        6,
+        24,
+        1,
+        1
+      ],
+      "bytes": 576
+    },
+    "neck.input_conv_1.squeeze_excitation_module.conv1.bias": {
+      "offset": 9401984,
+      "shape": [
+        6
+      ],
+      "bytes": 24
+    },
+    "neck.input_conv_1.squeeze_excitation_module.conv2.weight": {
+      "offset": 9402048,
+      "shape": [
+        24,
+        6,
+        1,
+        1
+      ],
+      "bytes": 576
+    },
+    "neck.input_conv_1.squeeze_excitation_module.conv2.bias": {
+      "offset": 9402624,
+      "shape": [
+        24
+      ],
+      "bytes": 96
+    },
+    "neck.insert_conv_2.in_conv.weight": {
+      "offset": 9402752,
+      "shape": [
+        96,
+        192,
+        1,
+        1
+      ],
+      "bytes": 73728
+    },
+    "neck.insert_conv_2.squeeze_excitation_block.conv1.weight": {
+      "offset": 9476480,
+      "shape": [
+        24,
+        96,
+        1,
+        1
+      ],
+      "bytes": 9216
+    },
+    "neck.insert_conv_2.squeeze_excitation_block.conv1.bias": {
+      "offset": 9485696,
+      "shape": [
+        24
+      ],
+      "bytes": 96
+    },
+    "neck.insert_conv_2.squeeze_excitation_block.conv2.weight": {
+      "offset": 9485824,
+      "shape": [
+        96,
+        24,
+        1,
+        1
+      ],
+      "bytes": 9216
+    },
+    "neck.insert_conv_2.squeeze_excitation_block.conv2.bias": {
+      "offset": 9495040,
+      "shape": [
+        96
+      ],
+      "bytes": 384
+    },
+    "neck.input_conv_2.conv.weight": {
+      "offset": 9495424,
+      "shape": [
+        96,
+        1,
+        7,
+        7
+      ],
+      "bytes": 18816
+    },
+    "neck.input_conv_2.conv.bias": {
+      "offset": 9514240,
+      "shape": [
+        96
+      ],
+      "bytes": 384
+    },
+    "neck.input_conv_2.pw.weight": {
+      "offset": 9514624,
+      "shape": [
+        24,
+        96,
+        1,
+        1
+      ],
+      "bytes": 9216
+    },
+    "neck.input_conv_2.squeeze_excitation_module.conv1.weight": {
+      "offset": 9523840,
+      "shape": [
+        6,
+        24,
+        1,
+        1
+      ],
+      "bytes": 576
+    },
+    "neck.input_conv_2.squeeze_excitation_module.conv1.bias": {
+      "offset": 9524416,
+      "shape": [
+        6
+      ],
+      "bytes": 24
+    },
+    "neck.input_conv_2.squeeze_excitation_module.conv2.weight": {
+      "offset": 9524480,
+      "shape": [
+        24,
+        6,
+        1,
+        1
+      ],
+      "bytes": 576
+    },
+    "neck.input_conv_2.squeeze_excitation_module.conv2.bias": {
+      "offset": 9525056,
+      "shape": [
+        24
+      ],
+      "bytes": 96
+    },
+    "neck.insert_conv_3.in_conv.weight": {
+      "offset": 9525184,
+      "shape": [
+        96,
+        384,
+        1,
+        1
+      ],
+      "bytes": 147456
+    },
+    "neck.insert_conv_3.squeeze_excitation_block.conv1.weight": {
+      "offset": 9672640,
+      "shape": [
+        24,
+        96,
+        1,
+        1
+      ],
+      "bytes": 9216
+    },
+    "neck.insert_conv_3.squeeze_excitation_block.conv1.bias": {
+      "offset": 9681856,
+      "shape": [
+        24
+      ],
+      "bytes": 96
+    },
+    "neck.insert_conv_3.squeeze_excitation_block.conv2.weight": {
+      "offset": 9681984,
+      "shape": [
+        96,
+        24,
+        1,
+        1
+      ],
+      "bytes": 9216
+    },
+    "neck.insert_conv_3.squeeze_excitation_block.conv2.bias": {
+      "offset": 9691200,
+      "shape": [
+        96
+      ],
+      "bytes": 384
+    },
+    "neck.input_conv_3.conv.weight": {
+      "offset": 9691584,
+      "shape": [
+        96,
+        1,
+        7,
+        7
+      ],
+      "bytes": 18816
+    },
+    "neck.input_conv_3.conv.bias": {
+      "offset": 9710400,
+      "shape": [
+        96
+      ],
+      "bytes": 384
+    },
+    "neck.input_conv_3.pw.weight": {
+      "offset": 9710784,
+      "shape": [
+        24,
+        96,
+        1,
+        1
+      ],
+      "bytes": 9216
+    },
+    "neck.input_conv_3.squeeze_excitation_module.conv1.weight": {
+      "offset": 9720000,
+      "shape": [
+        6,
+        24,
+        1,
+        1
+      ],
+      "bytes": 576
+    },
+    "neck.input_conv_3.squeeze_excitation_module.conv1.bias": {
+      "offset": 9720576,
+      "shape": [
+        6
+      ],
+      "bytes": 24
+    },
+    "neck.input_conv_3.squeeze_excitation_module.conv2.weight": {
+      "offset": 9720640,
+      "shape": [
+        24,
+        6,
+        1,
+        1
+      ],
+      "bytes": 576
+    },
+    "neck.input_conv_3.squeeze_excitation_module.conv2.bias": {
+      "offset": 9721216,
+      "shape": [
+        24
+      ],
+      "bytes": 96
+    },
+    "head.conv_down.conv.weight": {
+      "offset": 9721344,
+      "shape": [
+        24,
+        96,
+        3,
+        3
+      ],
+      "bytes": 82944
+    },
+    "head.conv_down.conv.bias": {
+      "offset": 9804288,
+      "shape": [
+        24
+      ],
+      "bytes": 96
+    },
+    "head.conv_up.conv.weight": {
+      "offset": 9804416,
+      "shape": [
+        24,
+        24,
+        2,
+        2
+      ],
+      "bytes": 9216
+    },
+    "head.conv_up.conv.bias": {
+      "offset": 9813632,
+      "shape": [
+        24
+      ],
+      "bytes": 96
+    },
+    "head.conv_final.weight": {
+      "offset": 9813760,
+      "shape": [
+        24,
+        1,
+        2,
+        2
+      ],
+      "bytes": 384
+    },
+    "head.conv_final.bias": {
+      "offset": 9814144,
+      "shape": [
+        1
+      ],
+      "bytes": 4
+    }
+  }
+}

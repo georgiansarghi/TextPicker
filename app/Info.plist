@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0"><dict>
-    <key>CFBundleIdentifier</key><string>local.textocr.prototype</string>
-    <key>CFBundleName</key><string>TextOCR</string>
-    <key>CFBundleDisplayName</key><string>TextOCR</string>
-    <key>CFBundleExecutable</key><string>TextOCR</string>
+    <key>CFBundleIdentifier</key><string>local.textpicker</string>
+    <key>CFBundleName</key><string>TextPicker</string>
+    <key>CFBundleDisplayName</key><string>TextPicker</string>
+    <key>CFBundleExecutable</key><string>TextPicker</string>
     <key>CFBundlePackageType</key><string>APPL</string>
-    <key>CFBundleIconFile</key><string>TextOCR</string>
-    <key>CFBundleShortVersionString</key><string>0.6.0</string>
-    <key>CFBundleVersion</key><string>14</string>
+    <key>CFBundleIconFile</key><string>TextPicker</string>
+    <key>CFBundleShortVersionString</key><string>0.10.0</string>
+    <key>CFBundleVersion</key><string>28</string>
     <key>LSMinimumSystemVersion</key><string>14.0</string>
     <key>LSUIElement</key><true/>
     <key>NSHighResolutionCapable</key><true/>
-    <key>NSScreenCaptureUsageDescription</key><string>TextOCR captures the region you select to recognize text locally and copy it to your clipboard. Images are not uploaded.</string>
+    <key>NSScreenCaptureUsageDescription</key><string>TextPicker captures the region you select to recognize text locally and copy it to your clipboard. Images are not uploaded.</string>
 </dict></plist>

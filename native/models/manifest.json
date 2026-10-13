@@ -1,0 +1,7 @@
+{
+  "files": {
+    "detector.weights": "05372be995cc3ee1073d729255eff10cb8f8c0f439532b30f799196846c33406",
+    "recognizer.weights": "b1e149faa498c1ad4b919000f96b0318b5c9e32fcc7c5ff7a48ce8285f31df6e",
+    "characters.bin": "167091c7a7015b319493a76b301cb5d645135c396ee16c50f798651438d80520"
+  }
+}

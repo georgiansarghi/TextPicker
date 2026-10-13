@@ -5,14 +5,13 @@ import ApplicationServices
 final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private enum Phase { case starting, ready, preparing, selecting, recognizing, failed }
     private var phase: Phase = .starting
-    private var backend = Backend.restored(UserDefaults.standard.string(forKey: "backend"))
+    private let availableBackends = Backend.bundled
+    private var backend = Backend.coreMLCPU
     private var statusItem: NSStatusItem!
-    private let statusLine = NSMenuItem(title: "Starting…", action: nil, keyEquivalent: "")
-    private let captureItem = NSMenuItem(title: "Capture Text", action: #selector(captureText), keyEquivalent: "2")
-    private let cancelItem = NSMenuItem(title: "Cancel Current Capture", action: #selector(cancelCapture), keyEquivalent: "")
-    private var modelItems: [NSMenuItem] = []
-    private var lineBreaksItem: NSMenuItem!
-    private var soundItem: NSMenuItem!
+    private var controls: CaptureMenu!
+    private var shortcut = CaptureShortcut.restored()
+    private var menuOpen = false
+    private var recordingTimer: Timer?
     private let input = CaptureInput()
     private lazy var capture = CaptureController(input: input)
     private let toast = Toast()
@@ -21,22 +20,46 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private var currentImage: URL?
     private var selectionDisplayLayout: [DisplayLayoutEntry] = []
     private var selectionFinishedAt: Double = 0
-    private var lastResult = "No captures yet"
-    private var lastError = "None"
-    private var testWindow: NSWindow?
+    private lazy var permissionStatus = PermissionStatus(actions: .live(check: { [weak self] in
+        guard let self else { return CaptureAccess() }
+        return self.readAccess(repairInput: !self.isCapturing)
+    }))
+    private var access: CaptureAccess { permissionStatus.access }
+    private lazy var permissionMenuMonitor = PermissionRefreshMonitor(shouldRefresh: { [weak self] in
+        guard let self else { return false }
+        return self.menuOpen && !self.isCapturing
+    }, refresh: { [weak self] in
+        self?.permissionStatus.refresh()
+        self?.refreshMenu()
+    })
+    private var permissionsWindow: PermissionsWindowController?
     private var sleepObserver: NSObjectProtocol?
     private var wakeObserver: NSObjectProtocol?
     private var displayObserver: NSObjectProtocol?
     private var keepLines: Bool { !UserDefaults.standard.bool(forKey: "joinLines") }
     private var playSound: Bool { UserDefaults.standard.bool(forKey: "playSound") }
+    private var additiveClipboard: Bool { UserDefaults.standard.bool(forKey: "additiveClipboard") }
+    private var clipboardSession = AdditiveClipboardSession()
+    private var showCaptureFeedback: Bool { CaptureFeedbackPreference.isEnabled() }
+    private let loginItem = LoginItemController(actions: .live)
     private var appVersion: String { Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "unknown" }
     private var isCapturing: Bool { [.preparing, .selecting, .recognizing].contains(phase) }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         do { files = try CaptureFiles() }
-        catch { alert("Cannot initialize TextOCR", error.localizedDescription); NSApp.terminate(nil); return }
-        // Persist migration from a removed backend; retain either surviving choice.
-        UserDefaults.standard.set(backend.rawValue, forKey: "backend")
+        catch { showStartupError("Cannot initialize TextPicker", error.localizedDescription); NSApp.terminate(nil); return }
+        guard !availableBackends.isEmpty else {
+            showStartupError("Invalid TextPicker build", "No valid OCR engine is configured. Reinstall TextPicker.")
+            NSApp.terminate(nil); return
+        }
+        let saved = UserDefaults.standard.string(forKey: "backend")
+        backend = Backend.restored(saved, available: availableBackends)
+        // A smaller edition must not overwrite a valid preference for an engine
+        // it omits. Returning to the full edition restores that saved choice.
+        if saved.flatMap(Backend.init(rawValue:)) == nil {
+            UserDefaults.standard.set(backend.rawValue, forKey: "backend")
+        }
+        toast.suppressRoutineNotifications = !showCaptureFeedback
         setupMenu()
         guard let resources = Bundle.main.resourceURL else { NSApp.terminate(nil); return }
         worker = OCRWorker(resources: resources)
@@ -59,9 +82,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             Diagnostics.shared.log("Shortcut received phase=\(self.phase)")
             if self.isCapturing { self.cancelActiveCapture(reason: "shortcut") } else { self.captureText() }
         }
-        input.onFailure = { [weak self] message in self?.fail(message, stopWorker: false) }
-        input.install()
-        Diagnostics.shared.log("Launch v\(appVersion) screen_permission=\(CGPreflightScreenCaptureAccess()) input_access=\(input.available)")
+        input.onFailure = { [weak self] message in
+            guard let self else { return }
+            self.fail(message, stopWorker: false)
+            self.permissionStatus.refresh()
+            if !self.access.ready { self.showPermissions() }
+        }
+        permissionStatus.refresh()
+        Diagnostics.shared.log("Launch v\(appVersion) screen_permission=\(access.screenRecording) input_access=\(access.inputReady)")
         let center = NSWorkspace.shared.notificationCenter
         sleepObserver = center.addObserver(forName: NSWorkspace.willSleepNotification, object: nil, queue: .main) { [weak self] _ in
             Task { @MainActor in
@@ -82,125 +110,173 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             }
         }
         restartEngine()
-        if !input.available {
-            toast.show("Input permission required", detail: "TextOCR menu → Enable Input Access…", duration: 8)
-        }
+        // Missing access gets one persistent, actionable setup window—not a
+        // disappearing toast or a chain of modal alerts. Healthy launches stay quiet.
+        if !access.ready { showPermissions() }
+    }
+
+    func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
+        guard !isCapturing else { return false }
+        permissionStatus.refresh()
+        if !access.ready { showPermissions() }
+        return false
     }
 
     private func setupMenu() {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
-        let image = NSImage(systemSymbolName: "text.viewfinder", accessibilityDescription: "TextOCR")
+        let image = NSImage(systemSymbolName: "text.viewfinder", accessibilityDescription: "TextPicker")
         image?.isTemplate = true
         statusItem.button?.image = image
         statusItem.button?.imagePosition = .imageLeading
-        let menu = NSMenu()
-        menu.autoenablesItems = false
-        menu.delegate = self
-        menu.addItem(NSMenuItem(title: "TextOCR — local screen text capture", action: nil, keyEquivalent: ""))
-        menu.items[0].isEnabled = false
-        statusLine.isEnabled = false
-        menu.addItem(statusLine)
-        menu.addItem(.separator())
-        captureItem.target = self
-        captureItem.keyEquivalentModifierMask = [.command, .shift]
-        menu.addItem(captureItem)
-        cancelItem.target = self
-        menu.addItem(cancelItem)
-        menu.addItem(.separator())
-        let modelMenu = NSMenu(title: "OCR Model")
-        modelMenu.autoenablesItems = false
-        let legend = NSMenuItem(title: "Model — Runtime / Device", action: nil, keyEquivalent: "")
-        legend.isEnabled = false
-        modelMenu.addItem(legend)
-        modelMenu.addItem(.separator())
-        for backend in Backend.allCases {
-            let item = NSMenuItem(title: backend.title, action: #selector(selectBackend(_:)), keyEquivalent: "")
-            item.representedObject = backend.rawValue
-            item.toolTip = backend.toolTip
-            item.target = self
-            modelItems.append(item)
-            modelMenu.addItem(item)
+        controls = CaptureMenu(actions: .init(
+            capture: { [weak self] in self?.captureText() },
+            retry: { [weak self] in self?.restartEngine() },
+            permission: { [weak self] permission, action in self?.performPermissionAction(action, for: permission) },
+            backend: { [weak self] in self?.selectBackend($0) },
+            lines: { [weak self] value in
+                guard let self else { return }
+                if self.controls.shortcut.recording { self.stopRecordingShortcut() }
+                UserDefaults.standard.set(!value, forKey: "joinLines")
+                self.refreshMenu()
+            },
+            sound: { [weak self] value in
+                guard let self else { return }
+                if self.controls.shortcut.recording { self.stopRecordingShortcut() }
+                UserDefaults.standard.set(value, forKey: "playSound")
+                self.refreshMenu()
+            },
+            record: { [weak self] in self?.beginRecordingShortcut() },
+            resetShortcut: { [weak self] in self?.saveShortcut(.default) },
+            quit: { NSApp.terminate(nil) },
+            additiveClipboard: { [weak self] value in
+                guard let self else { return }
+                if self.controls.shortcut.recording { self.stopRecordingShortcut() }
+                self.clipboardSession.setEnabled(value)
+                UserDefaults.standard.set(value, forKey: "additiveClipboard")
+                self.refreshMenu()
+            },
+            showCaptureFeedback: { [weak self] value in
+                guard let self else { return }
+                if self.controls.shortcut.recording { self.stopRecordingShortcut() }
+                CaptureFeedbackPreference.setEnabled(value)
+                self.toast.suppressRoutineNotifications = !value
+                self.refreshMenu()
+            },
+            login: { [weak self] value in
+                guard let self else { return }
+                if self.controls.shortcut.recording { self.stopRecordingShortcut() }
+                self.loginItem.setRequested(value)
+                self.refreshMenu()
+            },
+            loginSettings: { [weak self] in self?.loginItem.openSettings() }), backends: availableBackends)
+        controls.menu.delegate = self
+        statusItem.menu = controls.menu
+        input.captureShortcut = shortcut
+        input.onRecordedShortcut = { [weak self] key, flags in
+            guard let self, self.menuOpen, self.controls.shortcut.recording else { return }
+            if key == 53 { self.stopRecordingShortcut(); return }
+            let value = CaptureShortcut(keyCode: key, modifiers: flags.rawValue)
+            if let error = value.validationError {
+                self.controls.shortcut.setRecording(true, message: error)
+            } else { self.saveShortcut(value) }
         }
-        let parent = NSMenuItem(title: "OCR Model", action: nil, keyEquivalent: "")
-        parent.submenu = modelMenu
-        menu.addItem(parent)
-        lineBreaksItem = item("Preserve Line Breaks", #selector(toggleLines))
-        soundItem = item("Play Sound When Copied", #selector(toggleSound))
-        menu.addItem(lineBreaksItem); menu.addItem(soundItem)
-        menu.addItem(item("Restart OCR Engine", #selector(restartEngine)))
-        menu.addItem(.separator())
-        menu.addItem(item("Open Test Card…", #selector(openTestCard)))
-        menu.addItem(item("Screen Recording Permission…", #selector(openPermissions)))
-        menu.addItem(item("Enable Input Access…", #selector(enableInputAccess)))
-        menu.addItem(item("Diagnostics…", #selector(showDiagnostics)))
-        menu.addItem(item("Testing Guide…", #selector(openGuide)))
-        menu.addItem(.separator())
-        let quit = item("Quit TextOCR", #selector(quitApp))
-        quit.keyEquivalent = "q"
-        menu.addItem(quit)
-        statusItem.menu = menu
     }
 
-    private func item(_ title: String, _ action: Selector) -> NSMenuItem {
-        let item = NSMenuItem(title: title, action: action, keyEquivalent: "")
-        item.target = self
-        return item
-    }
     func menuWillOpen(_ menu: NSMenu) {
-        if !input.available && !isCapturing { input.install() }
+        menuOpen = true
+        loginItem.refresh()
+        if !isCapturing { permissionStatus.refresh() }
         refreshMenu()
+        permissionMenuMonitor.start()
+    }
+    func menuDidClose(_ menu: NSMenu) {
+        menuOpen = false
+        permissionMenuMonitor.stop()
+        stopRecordingShortcut()
+        input.endMenuTracking()
+        _ = controls.highlight(nil)
+    }
+    func menu(_ menu: NSMenu, willHighlight item: NSMenuItem?) {
+        let keys = controls.highlight(item)
+        guard !controls.shortcut.recording else { return }
+        input.setMenuKeys(keys) { [weak self, weak item] key in
+            guard let self, let item, self.menuOpen, self.controls.menu.highlightedItem === item else { return }
+            self.controls.handleKey(key, item: item)
+        }
+    }
+    private func beginRecordingShortcut() {
+        guard menuOpen, !isCapturing else { return }
+        if controls.shortcut.recording { stopRecordingShortcut(); return }
+        guard input.beginShortcutRecording() else {
+            controls.shortcut.setRecording(false, message: "Enable Accessibility under Permissions first.")
+            return
+        }
+        controls.shortcut.setRecording(true)
+        refreshMenu()
+        // Bound interception even if a menu-close notification is ever missed.
+        let timer = Timer(timeInterval: 30, repeats: false) { [weak self] _ in
+            MainActor.assumeIsolated { self?.stopRecordingShortcut() }
+        }
+        recordingTimer = timer
+        RunLoop.main.add(timer, forMode: .common)
+        NSAccessibility.post(element: controls.shortcut.recordButton, notification: .valueChanged)
+    }
+    private func stopRecordingShortcut() {
+        recordingTimer?.invalidate(); recordingTimer = nil
+        input.endShortcutRecording()
+        controls?.shortcut.setRecording(false)
+        if menuOpen { menu(controls.menu, willHighlight: controls.menu.highlightedItem) }
+        refreshMenu()
+    }
+    private func saveShortcut(_ value: CaptureShortcut) {
+        guard value.validationError == nil, !isCapturing else { return }
+        shortcut = value
+        shortcut.save()
+        input.captureShortcut = value
+        stopRecordingShortcut()
+        NSAccessibility.post(element: controls.shortcut.recordButton, notification: .valueChanged)
     }
     private func refreshMenu() {
         guard statusItem != nil else { return }
         let status: String
         switch phase {
         case .starting: status = "Warming \(backend.shortTitle)…"
-        case .ready: status = input.available ? "Ready • \(backend.shortTitle)" : "Input access required — see Enable Input Access…"
+        case .ready: status = access.ready ? "Ready • \(backend.shortTitle)" : "Permissions required"
         case .preparing: status = "Preparing screen capture…"
         case .selecting: status = "Drag a region • Esc to cancel"
         case .recognizing: status = "Recognizing • \(backend.shortTitle)…"
-        case .failed: status = "OCR unavailable — restart or change model"
+        case .failed: status = "OCR unavailable — use Retry OCR Engine"
         }
-        statusLine.title = status
-        statusItem.button?.title = [.starting, .preparing, .recognizing].contains(phase) ? " ···" : ""
-        statusItem.button?.toolTip = "TextOCR — \(status)\nCapture: ⌘⇧2"
-        input.canStartCapture = phase == .ready && input.available && CGPreflightScreenCaptureAccess()
-        captureItem.isEnabled = phase == .ready
-        cancelItem.isEnabled = isCapturing
-        for item in modelItems {
-            item.state = item.representedObject as? String == backend.rawValue ? .on : .off
-            item.isEnabled = !isCapturing
+        let preservingSelection = menuOpen && [.preparing, .selecting].contains(phase)
+        if !preservingSelection {
+            statusItem.button?.title = [.starting, .preparing, .recognizing].contains(phase) ? " ···" : ""
+            statusItem.button?.toolTip = "TextPicker — \(status)\nCapture: \(shortcut.display)"
         }
-        lineBreaksItem.state = keepLines ? .on : .off
-        soundItem.state = playSound ? .on : .off
+        // The tap still dispatches the shortcut when canStartCapture is false,
+        // so missing access opens setup without arming/blocking selection input.
+        input.canStartCapture = phase == .ready && access.ready && input.available
+        controls.update(ready: phase == .ready, capturing: isCapturing, failed: phase == .failed,
+                        access: access, backend: backend, keepLines: keepLines,
+                        playSound: playSound, shortcut: shortcut, preservingSelection: preservingSelection,
+                        additiveClipboard: additiveClipboard, showCaptureFeedback: showCaptureFeedback,
+                        loginRequested: loginItem.status.requested, loginHelpTitle: loginItem.helpTitle, loginError: loginItem.error,
+                        requestedPermissions: permissionStatus.requested, permissionError: permissionStatus.settingsError)
     }
 
-    @objc private func captureText() {
+    private func captureText() {
         guard phase == .ready else {
             if phase == .failed { restartEngine() }
-            toast.show("OCR engine is warming up", detail: "Try ⌘⇧2 when the menu says Ready")
+            toast.show(.gettingReady)
             return
         }
         toast.dismiss()
-        guard input.available || input.install() else {
+        permissionStatus.refresh()
+        guard access.ready else {
             input.endSelection()
-            enableInputAccess()
+            showPermissions()
             return
         }
-        guard CGPreflightScreenCaptureAccess() else {
-            input.endSelection()
-            NSApp.activate(ignoringOtherApps: true)
-            _ = CGRequestScreenCaptureAccess()
-            guard CGPreflightScreenCaptureAccess() else {
-                let response = alert("Allow Screen Recording for TextOCR",
-                    "Enable TextOCR in System Settings → Privacy & Security → Screen & System Audio Recording. Then quit and reopen TextOCR if macOS asks. Recognition stays entirely on this Mac.",
-                    button: "Open Settings")
-                if response == .alertFirstButtonReturn { openPermissions() }
-                return
-            }
-            beginSelection()
-            return
-        }
+        permissionsWindow?.close()
         beginSelection()
     }
 
@@ -214,7 +290,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             do {
                 self.currentImage = try self.files.save(image)
                 self.phase = .recognizing; self.refreshMenu()
-                self.toast.show("Recognizing text…", detail: "\(self.backend.shortTitle) • ⌘⇧2 to cancel", duration: 10)
+                self.toast.show(.reading)
                 self.worker.recognize(self.currentImage!)
             } catch { self.fail(error.localizedDescription) }
         }, cancelled: { [weak self] in
@@ -228,20 +304,25 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         guard phase == .recognizing else { return }
         files.remove(currentImage); currentImage = nil
         phase = .ready
-        let output = clipboardText(text, keepLineBreaks: keepLines)
+        toast.dismiss() // Cancel pending progress before presenting the result.
+        clipboardSession.setEnabled(additiveClipboard)
+        let appended = clipboardSession.isAppending
+        let output = clipboardSession.proposedText(text, keepLineBreaks: keepLines)
         let elapsed = Int((ProcessInfo.processInfo.systemUptime - selectionFinishedAt) * 1000)
+        let lastResult: String
         if output.isEmpty {
-            toast.show("No text found", detail: "Clipboard unchanged — try a tighter selection")
+            toast.show(.noText)
             lastResult = "No text found (\(elapsed) ms after selection)"
         } else {
             NSPasteboard.general.clearContents()
             if NSPasteboard.general.setString(output, forType: .string) {
+                clipboardSession.didCopy(output)
                 lastResult = "Copied \(output.count) characters; OCR \(Int(ocrMS)) ms; after selection \(elapsed) ms"
-                toast.show("Copied \(output.count) characters", detail: "\(backend.shortTitle) • \(elapsed) ms • paste with ⌘V")
+                toast.show(appended ? .added : .copied)
                 if playSound { NSSound(named: "Pop")?.play() }
             } else {
                 lastResult = "Clipboard write failed"
-                toast.show("Could not write to clipboard", detail: "Try capturing again")
+                toast.show(.copyFailed)
             }
         }
         Diagnostics.shared.log("backend=\(backend.rawValue) \(lastResult)")
@@ -252,14 +333,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         capture.cancel(notify: false)
         if stopWorker { worker?.stop() }
         files?.remove(currentImage); currentImage = nil
-        lastError = message
         phase = worker?.ready == true ? .ready : .failed
         Diagnostics.shared.log("Failure: \(message)")
         refreshMenu()
-        toast.show("Capture could not finish", detail: String(message.prefix(85)), duration: 5)
+        toast.show(.forFailure(message, engineReady: worker?.ready == true))
     }
 
-    @objc private func cancelCapture() { cancelActiveCapture(reason: "menu") }
     private func cancelActiveCapture(reason: String) {
         guard isCapturing else { return }
         let cancelledPhase = phase
@@ -271,7 +350,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         else { phase = worker.ready ? .ready : .failed; refreshMenu() }
         Diagnostics.shared.log("Capture cancelled reason=\(reason) phase=\(cancelledPhase); clipboard unchanged")
     }
-    @objc private func restartEngine() {
+    private func restartEngine() {
         guard worker != nil else { return }
         capture.cancel(notify: false)
         files.remove(currentImage); currentImage = nil
@@ -280,71 +359,57 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         refreshMenu()
         worker.start(backend)
     }
-    @objc private func selectBackend(_ item: NSMenuItem) {
-        guard !isCapturing, let raw = item.representedObject as? String, let value = Backend(rawValue: raw) else { return }
+    private func selectBackend(_ value: Backend) {
+        guard !isCapturing, availableBackends.contains(value), value != backend else { return }
         backend = value
-        UserDefaults.standard.set(raw, forKey: "backend")
+        UserDefaults.standard.set(value.rawValue, forKey: "backend")
         restartEngine()
     }
-    @objc private func toggleLines() {
-        UserDefaults.standard.set(keepLines, forKey: "joinLines")
+    private func readAccess(repairInput: Bool) -> CaptureAccess {
+        let trusted = AXIsProcessTrusted()
+        if repairInput && !isCapturing && trusted && !input.available { input.install() }
+        return CaptureAccess(screenRecording: CGPreflightScreenCaptureAccess(), accessibility: trusted,
+                             inputReady: input.available)
+    }
+    private func performPermissionAction(_ action: PermissionMenuAction, for permission: CapturePermission) {
+        guard !isCapturing else { return }
+        stopRecordingShortcut()
+        input.endSelection()
+        permissionStatus.perform(action, for: permission)
+        permissionsWindow?.refresh()
         refreshMenu()
     }
-    @objc private func toggleSound() {
-        UserDefaults.standard.set(!playSound, forKey: "playSound")
-        refreshMenu()
-    }
-    @objc private func openPermissions() {
-        NSWorkspace.shared.open(URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture")!)
-    }
-    @objc private func enableInputAccess() {
-        if input.install() { refreshMenu(); return }
-        _ = AXIsProcessTrustedWithOptions([kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true] as CFDictionary)
-        let response = alert("Enable input access for TextOCR",
-            "Enable TextOCR in System Settings → Privacy & Security → Accessibility, then reopen TextOCR. This lets the shortcut and selection drag be intercepted without dismissing open menus. If macOS also requests Input Monitoring, allow it. No keystrokes are recorded or uploaded.", button: "Open Settings")
-        if response == .alertFirstButtonReturn {
-            NSWorkspace.shared.open(URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility")!)
+    private func showPermissions() {
+        cancelActiveCapture(reason: "permissions")
+        input.endSelection()
+        toast.dismiss()
+        if permissionsWindow == nil {
+            permissionsWindow = PermissionsWindowController(model: permissionStatus, onRefresh: { [weak self] _ in
+                self?.refreshMenu()
+            }, onQuit: { NSApp.terminate(nil) })
         }
+        permissionsWindow?.present()
     }
-    @objc private func showDiagnostics() {
-        let permission = CGPreflightScreenCaptureAccess() ? "Granted" : "Not granted"
-        let text = "Version: \(appVersion) (Apple Silicon)\nBackend: \(backend.shortTitle)\nScreen Recording: \(permission)\nShortcut: ⌘⇧2 (input tap \(input.available ? "enabled" : "unavailable"))\n\nLast result: \(lastResult)\nLast error: \(lastError)\n\nOCR is offline. No screenshot/text history is saved. Logs contain timings/errors only."
-        if alert("TextOCR Diagnostics", text, button: "Open Log") == .alertFirstButtonReturn {
-            NSWorkspace.shared.open(Diagnostics.shared.url)
-        }
-    }
-    @objc private func openGuide() {
-        if let url = Bundle.main.url(forResource: "TESTING", withExtension: "md") { NSWorkspace.shared.open(url) }
-    }
-    @objc private func openTestCard() {
-        if let testWindow { NSApp.activate(ignoringOtherApps: true); testWindow.makeKeyAndOrderFront(nil); return }
-        let window = NSWindow(contentRect: CGRect(x: 0, y: 0, width: 690, height: 355),
-                              styleMask: [.titled, .closable, .miniaturizable], backing: .buffered, defer: false)
-        window.title = "TextOCR Test Card"
-        window.isReleasedWhenClosed = false
-        let text = "Capture a region with ⌘⇧2, then paste into your editor.\n\nThe quick brown fox jumps over the lazy dog.\nOrder #A1042 costs $39.95 before tax.\n\nGrüße aus München! Öffnen Sie die Einstellungen.\nDie Straße führt über die Brücke zum Café.\nRechnungsbetrag: 1.234,56 € inkl. 19 % MwSt.\n\nconst total = items.reduce((sum, x) => sum + x.price, 0);"
-        let label = NSTextField(wrappingLabelWithString: text)
-        label.font = .monospacedSystemFont(ofSize: 15, weight: .regular)
-        label.frame = CGRect(x: 24, y: 25, width: 642, height: 285)
-        window.contentView?.addSubview(label)
-        window.center()
-        testWindow = window
-        NSApp.activate(ignoringOtherApps: true)
-        window.makeKeyAndOrderFront(nil)
-    }
-    @objc private func quitApp() { NSApp.terminate(nil) }
     func applicationWillTerminate(_ notification: Notification) {
+        let workspace = NSWorkspace.shared.notificationCenter
+        if let sleepObserver { workspace.removeObserver(sleepObserver) }
+        if let wakeObserver { workspace.removeObserver(wakeObserver) }
+        if let displayObserver { NotificationCenter.default.removeObserver(displayObserver) }
+        sleepObserver = nil; wakeObserver = nil; displayObserver = nil
+        recordingTimer?.invalidate(); recordingTimer = nil
+        permissionMenuMonitor.stop()
+        toast.dismiss()
+        permissionsWindow?.shutdown()
         capture.cancel(notify: false)
         input.stop()
         worker?.stop()
         files?.remove(currentImage)
     }
-    @discardableResult private func alert(_ title: String, _ message: String, button: String = "OK") -> NSApplication.ModalResponse {
+    private func showStartupError(_ title: String, _ message: String) {
         NSApp.activate(ignoringOtherApps: true)
         let alert = NSAlert()
         alert.messageText = title; alert.informativeText = message
-        alert.addButton(withTitle: button)
-        if button != "OK" { alert.addButton(withTitle: "Cancel") }
-        return alert.runModal()
+        alert.addButton(withTitle: "OK")
+        _ = alert.runModal()
     }
 }

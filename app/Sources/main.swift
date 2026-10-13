@@ -5,7 +5,7 @@ import Darwin
 signal(SIGPIPE, SIG_IGN)
 let app = NSApplication.shared
 app.setActivationPolicy(.accessory)
-let identifier = Bundle.main.bundleIdentifier ?? "local.textocr.prototype"
+let identifier = Bundle.main.bundleIdentifier ?? "local.textpicker"
 if let existing = NSRunningApplication.runningApplications(withBundleIdentifier: identifier)
     .first(where: { $0.processIdentifier != ProcessInfo.processInfo.processIdentifier }) {
     existing.activate(options: [])

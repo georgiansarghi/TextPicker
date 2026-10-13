@@ -1,0 +1,6 @@
+[
+  {"path":"opencv-5.0.0.tar.gz","url":"https://codeload.github.com/opencv/opencv/tar.gz/refs/tags/5.0.0","sha256":"b0528f5a1d379d59d4701cb28c36e22214cc51cf64594e5b56f2d3e6c0233095"},
+  {"path":"clipper.cpp","url":"https://raw.githubusercontent.com/fonttools/pyclipper/1.4.0/src/clipper.cpp","sha256":"5c642a3668311701f72572443aa42c1a981edb037298efc015166d9d90be0755"},
+  {"path":"clipper.hpp","url":"https://raw.githubusercontent.com/fonttools/pyclipper/1.4.0/src/clipper.hpp","sha256":"734eba9dc9d399089b2b467017074bd24728a1b9e64c7429e827806ed10e54cc"},
+  {"path":"opencv-cache/kleidicv/b85a745bfe0e87e67e30be9533eb6b24-kleidicv-26.03.tar.gz","url":"https://gitlab.arm.com/kleidi/kleidicv/-/archive/26.03/kleidicv-26.03.tar.gz","sha256":"1bb4078fd215565f3906c33f76a00e7b843328965230d765afcd0d51141c434f"}
+]

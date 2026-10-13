@@ -90,7 +90,50 @@ final class CaptureInput {
     var onCancel: (() -> Void)?
     var onFailure: ((String) -> Void)?
     var canStartCapture = false
-    private(set) var failureReason = "Enable Accessibility for TextOCR, then reopen it."
+    var captureShortcut = CaptureShortcut.default
+    var onRecordedShortcut: ((UInt16, CGEventFlags) -> Void)?
+    private var menuRouting = MenuKeyRouting()
+    private var menuGeneration: UInt64 = 0
+    private var menuKeyAction: ((UInt16) -> Void)?
+
+    func setMenuKeys(_ keys: Set<UInt16>, action: ((UInt16) -> Void)?) {
+        menuGeneration &+= 1
+        menuRouting.controlKeys = keys
+        menuKeyAction = action
+    }
+    @discardableResult func beginShortcutRecording() -> Bool {
+        guard available, !state.active else { return false }
+        menuGeneration &+= 1
+        menuRouting.recording = true
+        return true
+    }
+    func endShortcutRecording() {
+        menuGeneration &+= 1
+        menuRouting.recording = false
+    }
+    func endMenuTracking() {
+        menuGeneration &+= 1
+        menuRouting.end()
+        menuKeyAction = nil
+    }
+    // Factored so tracking-mode delivery and stale callback rejection can be
+    // tested with synthetic key codes, without installing a tap or posting input.
+    @discardableResult func routeMenuKey(_ type: CGEventType, key: UInt16, flags: CGEventFlags, repeated: Bool) -> Bool {
+        let decision = menuRouting.route(type, key: key, flags: flags, repeated: repeated, captureActive: state.active)
+        if let action = decision.action {
+            let generation = menuGeneration
+            CFRunLoopPerformBlock(CFRunLoopGetMain(), CFRunLoopMode.commonModes.rawValue) { [weak self] in
+                guard let self, self.menuGeneration == generation else { return }
+                switch action {
+                case .record: self.onRecordedShortcut?(key, flags)
+                case .control: self.menuKeyAction?(key)
+                }
+            }
+            CFRunLoopWakeUp(CFRunLoopGetMain())
+        }
+        return decision.consume
+    }
+    private(set) var failureReason = "Enable Accessibility for TextPicker, then reopen it."
     private var tap: CFMachPort?
     private var source: CFRunLoopSource?
     private var watchdog: Timer?
@@ -106,10 +149,10 @@ final class CaptureInput {
         if available { return true }
         stop()
         guard AXIsProcessTrusted() else {
-            failureReason = "Enable Accessibility for TextOCR, then reopen it."
+            failureReason = "Enable Accessibility for TextPicker, then reopen it."
             return false
         }
-        failureReason = "macOS could not create the input tap. Check Accessibility and any Input Monitoring request, then reopen TextOCR."
+        failureReason = "macOS could not create the input tap. Check Accessibility, then reopen TextPicker."
         let types: [CGEventType] = [.keyDown, .keyUp, .mouseMoved, .leftMouseDown, .leftMouseUp,
                                    .leftMouseDragged, .rightMouseDown, .rightMouseUp, .rightMouseDragged,
                                    .otherMouseDown, .otherMouseUp, .otherMouseDragged, .scrollWheel]
@@ -140,7 +183,7 @@ final class CaptureInput {
 
     @discardableResult func beginSelection() -> Bool {
         guard available else {
-            failureReason = "Input capture is unavailable. Check Accessibility/Input Monitoring and reopen TextOCR."
+            failureReason = "Input capture is unavailable. Check Accessibility and reopen TextPicker."
             return false
         }
         if !state.active {
@@ -177,17 +220,20 @@ final class CaptureInput {
         CGDisplayShowCursor(display)
     }
     func stop() {
+        endMenuTracking()
         endSelection()
         watchdog?.invalidate(); watchdog = nil
         if let tap { CGEvent.tapEnable(tap: tap, enable: false); CFMachPortInvalidate(tap) }
         if let source { CFRunLoopRemoveSource(CFRunLoopGetMain(), source, .commonModes) }
         tap = nil; source = nil
         state.reset()
+        menuRouting = MenuKeyRouting()
     }
     private var mouseButtonHeld: Bool {
         [CGMouseButton.left, .right, .center].contains { CGEventSource.buttonState(.combinedSessionState, button: $0) }
     }
     private func arm(at point: CGPoint) {
+        menuGeneration &+= 1 // Discard queued setting edits before freezing the menu for capture.
         session &+= 1
         state.begin()
         pointer = point
@@ -204,20 +250,23 @@ final class CaptureInput {
     private func interrupted(_ message: String) {
         endSelection()
         let token = session
-        DispatchQueue.main.async { [weak self] in
+        onCaptureRunLoop { [weak self] in
             guard let self, self.session == token else { return }
             self.onFailure?(message)
         }
     }
-    private func handle(_ type: CGEventType, _ event: CGEvent) -> Unmanaged<CGEvent>? {
+    // Internal for synthetic event routing tests; tests never post these events.
+    func handle(_ type: CGEventType, _ event: CGEvent) -> Unmanaged<CGEvent>? {
         if type == .tapDisabledByTimeout || type == .tapDisabledByUserInput {
             if state.active { interrupted("macOS interrupted input capture. Selection cancelled; input restored.") }
             if let tap { CGEvent.tapEnable(tap: tap, enable: true) }
             return Unmanaged.passUnretained(event)
         }
         let key = event.getIntegerValueField(.keyboardEventKeycode)
-        let flags = event.flags.intersection([.maskCommand, .maskShift, .maskAlternate, .maskControl])
-        let shortcut = type == .keyDown && key == 19 && flags == [.maskCommand, .maskShift]
+        let flags = event.flags.intersection(CaptureShortcut.modifierMask)
+        if routeMenuKey(type, key: UInt16(truncatingIfNeeded: key), flags: flags,
+                        repeated: event.getIntegerValueField(.keyboardEventAutorepeat) != 0) { return nil }
+        let shortcut = type == .keyDown && captureShortcut.matches(key: key, flags: flags)
         let wasActive = state.active
         let decision = state.route(type, key: key, button: event.getIntegerValueField(.mouseEventButtonNumber),
                                    shortcut: shortcut, repeatKey: event.getIntegerValueField(.keyboardEventAutorepeat) != 0,
@@ -234,7 +283,7 @@ final class CaptureInput {
         let point = pointer
         if let action = decision.action {
             let token = session
-            DispatchQueue.main.async { [weak self] in
+            onCaptureRunLoop { [weak self] in
                 guard let self, self.session == token else { return }
                 switch action {
                 case .shortcut: self.onShortcut?()

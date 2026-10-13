@@ -1,10 +1,12 @@
-# TextOCR: Apple Silicon OCR prototype and benchmarks
+# TextPicker: local OCR for Apple Silicon
 
-**TextOCR v0.6.0 adds an opt-in native CPU backend.** Installed target: `~/Applications/TextOCR.app`. Capture with **⌘⇧2**. **PP-OCRv6 Small — Core ML / CPU** remains the default; **ONNX Runtime / CPU** remains available. **Native / CPU (experimental)** runs both detector and recognizer in the specialized C++/Accelerate executor, with native image preparation and perspective crops. Enable Screen Recording and Accessibility on first use. The default input-interception path is designed to preserve open menus without activating TextOCR; no separate menu mode is needed. See **[app/TESTING.md](app/TESTING.md)** for the testing checklist and **[app/README.md](app/README.md)** for implementation/build details.
+**TextPicker v0.10.0 supports selectable-engine builds, native checkbox settings, additive clipboard, opt-in login launch and inline shortcut recording, alongside the native CPU backend and live permission setup.** Installed target: `~/Applications/TextPicker.app`. Capture with **⌘⇧2** by default; change it directly in the menu. The default full build includes all three engines and prefers **Core ML / CPU**; the native-only edition omits the engine chooser and all other runtimes/models. **Native / CPU** runs both detector and recognizer in the specialized C++/Accelerate executor, with native image preparation and perspective crops. On first use, the setup window explains Screen Recording and Accessibility. The menu’s **Permissions** section shows their live status and direct Allow/Settings actions. The default input-interception path is designed to preserve open menus without activating TextPicker; no separate menu mode is needed. See **[app/TESTING.md](app/TESTING.md)** for the testing checklist and **[app/README.md](app/README.md)** for implementation/build details.
 
 The app is rebuilt from a clean runtime allowlist: no MLX, Tiny models, Apple Vision worker, Core ML GPU mode, pretrained patch checkpoint, Hugging Face tooling or PyMuPDF. Core ML uses NumPy/OpenCV helpers with parity checks against the previous pipeline. See [the app guide](app/README.md) and [measured cleanup results](app/cleanup-results/size.json).
 
-The complete native pipeline and its 25 synthetic stage/text parity cases are documented in **[inf-exp/PIPELINE.md](inf-exp/PIPELINE.md)**. Its measured runtime payload is 33.26 MiB, but adding it to the comparison app increases bundle size because the existing backends remain. Core ML CPU still has the lower matched median latency; native is experimental, not the new default.
+The production native pipeline, input/ownership contracts and one-command validation are documented in **[native/README.md](native/README.md)**. Its build no longer depends on experiment directories. Any nonempty subset can be packaged with `bash app/build.sh --engines native-cpu,coreml-cpu,onnx-small`; use `--engines native-cpu` for the small native-only edition. Engine choices appear only for multi-engine builds. Core ML CPU retains the lower historical matched median latency and is preferred when bundled. Saved choices for engines omitted by a limited build are retained.
+
+The working v0.6 state was committed as **`e8e2e9e`** before this improvement pass. Historical measurements and prototypes remain in `inf-exp/`; they are not active app source dependencies.
 
 Previous builds and all research evidence remain separate from the app. Vision's investigation is preserved [here](experiments/vision_api/README.md); its real-capture timeouts motivated removing it from the supported app.
 
@@ -24,6 +26,8 @@ These are OCR-only timings, not selection-to-clipboard timings, and this is a sm
 
 ## Layout
 
+- `app/`: menu-bar app, packaged backend integration, build/install/test entry points.
+- `native/`: production C++ CPU pipeline, Swift worker, frozen model specifications and validation.
 - `benchmark/vision.swift`: native Vision runner, explicit GPU/CPU support.
 - `benchmark/render.swift`, `generate_fixtures.py`: deterministic native CoreText fixture rendering.
 - `benchmark/run_python.py`: RapidOCR CPU/Core ML and persistent Tesseract C API runners.
@@ -39,7 +43,7 @@ These are OCR-only timings, not selection-to-clipboard timings, and this is a sm
 
 ## Re-run using the prepared environment
 
-From `~/src/textocr`:
+From the repository root:
 
 ```bash
 # CPU/native baselines; overwrites corresponding result files
