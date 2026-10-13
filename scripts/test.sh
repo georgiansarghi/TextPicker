@@ -4,6 +4,8 @@ set -euo pipefail
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 cd "$ROOT"
 [ "$#" = 0 ] || { echo "Usage: bash scripts/test.sh" >&2; exit 2; }
+.venv/bin/python -B tests/app/model_pack_tests.py
+.venv/bin/python -B tests/app/release_tests.py
 bash scripts/build.sh
 APP="$ROOT/.build/apps/TextPicker.app"
 mkdir -p .build/tests

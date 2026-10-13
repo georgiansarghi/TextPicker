@@ -1,27 +1,28 @@
 # TextPicker
 
-**Select a region. Copy its text.** A local OCR utility for Apple Silicon Macs.
+**Select a region. Copy its text.** Local OCR for Apple Silicon Macs.
 
-Press **⌘⇧2**, drag over text, and paste anywhere. Recognition runs on your Mac;
-no account, cloud service or capture uploads.
+Press **⌘⇧2**, drag over text, and paste anywhere. No account, cloud processing,
+or capture uploads.
 
-- Menu-preserving selection, configurable shortcut and optional capture feedback.
+- Menu-preserving selection, configurable shortcut and optional feedback.
 - Preserve line breaks or collect successive captures with Additive Clipboard.
-- Native CPU inference with PP-OCRv6 Small. Opt-in launch at login.
+- Native PP-OCRv6 Small inference. Opt-in launch at login.
+
+[**Download for Apple Silicon**](https://github.com/georgiansarghi/TextPicker/releases)
+
+**Preview:** ad-hoc signed, not notarized. macOS may block the download.
+Grant **Screen Recording** and **Accessibility** when prompted.
 
 ## Build & run
 
-Requires Xcode, CMake, `uv`, and the pinned model assets described in
-[Building](docs/BUILDING.md). Deployment target: macOS 14; older OS/display
-configurations still need the [live checks](docs/TESTING.md#live-checks).
+Requires Xcode, CMake and `uv`. The first build downloads and verifies the pinned
+model pack; the installed app works offline.
 
 ```sh
 bash scripts/setup.sh
-bash scripts/build.sh                 # after preparing model assets
+bash scripts/build.sh
 open .build/apps/TextPicker.app
 ```
 
-Grant **Screen Recording** and **Accessibility** when prompted. Capture is limited
-to the selected region plus its tiny alignment boundary; audio is disabled.
-
-[Build & install](docs/BUILDING.md) · [Tests & troubleshooting](docs/TESTING.md) · [Third-party notices](licenses/THIRD_PARTY.md)
+[Building](docs/BUILDING.md) · [Tests & limitations](docs/TESTING.md) · [Releases](docs/RELEASING.md) · [Notices](licenses/THIRD_PARTY.md)

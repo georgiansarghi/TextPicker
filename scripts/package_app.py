@@ -8,7 +8,8 @@ import subprocess
 import tempfile
 
 from verify_bundle import verify_bundle
-from verify_models import ROOT, MANIFEST, verify_directory
+from verify_models import ROOT, MANIFEST
+from model_pack import ensure_models
 
 BUILD = ROOT / '.build/apps'
 PYTHON = ROOT / '.venv/bin/python'
@@ -30,10 +31,7 @@ def main():
     destination = BUILD / 'TextPicker.app'
     if destination.is_symlink():
         parser.error('Refusing a symlink build destination')
-    models = ROOT / '.build/models/native'
-    if not models.is_dir():
-        parser.error('Missing native model assets; see docs/BUILDING.md')
-    verify_directory(models)
+    models = ensure_models()
     BUILD.mkdir(parents=True, exist_ok=True)
     evidence = ROOT / '.build/reports'
     evidence.mkdir(parents=True, exist_ok=True)

@@ -11,4 +11,4 @@ if [ ! -x .venv/bin/python ]; then uv venv --python 3.12 .venv; fi
 .venv/bin/python -c 'import sys; assert sys.version_info[:2] == (3, 12), "Use a Python 3.12 development environment"'
 uv pip sync --python .venv/bin/python scripts/requirements-dev.txt
 uv pip check --python .venv/bin/python
-printf 'Development environment ready. Prepare pinned models as described in docs/BUILDING.md.\n'
+printf 'Development environment ready. The first build fetches and verifies the pinned model pack.\n'

@@ -18,10 +18,13 @@ the app, alter permissions or register a login item.
 
 The three native assets—`detector.weights`, `recognizer.weights` and
 `characters.bin`—are **not in Git**. A fresh checkout needs the exact prepared
-PP-OCRv6 Small FP32 pack; generated C++ cannot reconstruct weights. There is no
-automatic download or unpinned conversion step.
+PP-OCRv6 Small FP32 pack; generated C++ cannot reconstruct weights. The first
+build downloads the versioned GitHub release asset pinned in
+`native/models/distribution.json`. Both the archive and every extracted file are
+hash-checked. Downloads are cached in `.build/downloads/`; prepared assets live in
+`.build/models/native/`. There is no unpinned conversion or runtime download.
 
-Import from an existing native TextPicker app or a prepared asset directory:
+Alternatively, import from an existing native TextPicker app or prepared directory:
 
 ```sh
 .venv/bin/python -B scripts/prepare_models.py --from-app ~/Applications/TextPicker.app
@@ -30,9 +33,10 @@ Import from an existing native TextPicker app or a prepared asset directory:
 ```
 
 The importer validates the entire input before copying and refuses mismatched
-existing assets. `native/models/manifest.json` pins every file. Assets live in
-`.build/models/native/`; preserve a separate pack or app before deleting
-`.build/`. No alternative inference engine or reference app is needed.
+existing assets. `native/models/manifest.json` pins every file. `OFFLINE=1` permits
+verified existing assets or a verified cached pack, but never a network fetch.
+Corrupt caches/assets fail rather than silently replacing them. No alternative
+inference engine or reference app is needed.
 
 ## Build, run and install
 
@@ -51,7 +55,8 @@ bundle. The first build fetches checksum-pinned native source dependencies;
 The installer verifies its staged copy, retains a dated rollback, and launches
 `~/Applications/TextPicker.app`. It does not change saved settings, TCC permissions
 or login registration. Ad-hoc updates may require renewed permissions. Public
-redistribution needs separate signing/notarization and licensing review.
+releases are currently explicitly marked ad-hoc-signed, non-notarized previews.
+See [Releasing](RELEASING.md) for CI and publication safeguards.
 
 ## Repository map
 

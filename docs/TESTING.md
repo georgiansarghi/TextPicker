@@ -15,7 +15,8 @@ HOME and stubbed launch commands. Reports and test executables go under `.build/
 
 The gates cover capture geometry/cancellation, input ownership, nested menu
 tracking, worker framing/recovery, settings, permission UI, feedback, native
-payload inventories, artwork, model importing and installation rollback.
+payload inventories, artwork, model importing/download/cache safety, release
+metadata policy and installation rollback.
 Native builds compare 25 full image/stage/text cases, every detector-map value
 against frozen references, 111 ratio-order cases, invalid assets, bounds and isolation.
 
