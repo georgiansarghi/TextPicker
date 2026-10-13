@@ -168,21 +168,22 @@ final class CaptureController {
                     throw appError("The selected display is no longer available")
                 }
                 let filter = SCContentFilter(display: display, excludingWindows: content.windows.filter { overlayIDs.contains($0.windowID) })
-                let config = SCStreamConfiguration()
-                config.width = Int((filter.contentRect.width * CGFloat(filter.pointPixelScale)).rounded())
-                config.height = Int((filter.contentRect.height * CGFloat(filter.pointPixelScale)).rounded())
-                config.showsCursor = false
-                config.captureResolution = .best
-                let image = try await SCScreenshotManager.captureImage(contentFilter: filter, configuration: config)
-                try Task.checkCancellation()
-                let pixels = pixelCrop(selection: rect, viewSize: screenSize,
-                                       imageSize: CGSize(width: image.width, height: image.height))
-                guard let cropped = image.cropping(to: pixels) else { throw appError("The selected region could not be captured") }
+                let request = try RegionCaptureRequest(selection: rect, viewSize: screenSize,
+                                                       contentSize: filter.contentRect.size,
+                                                       pointPixelScale: CGFloat(filter.pointPixelScale))
+                // Request only the selection's tight logical-point envelope.
+                // A boundary-only trim removes ScreenCaptureKit's alignment halo;
+                // no full-display image, resampling or alpha flattening is used.
+                let image = try await request.capture { config in
+                    try await SCScreenshotManager.captureImage(contentFilter: filter, configuration: config)
+                }
+                let metadata = CaptureImageDiagnostics(image)
                 onCaptureRunLoop { [weak self] in
                     guard let self, self.generation == token else { return }
+                    Diagnostics.shared.log("Region capture requested=\(request.captureWidth)x\(request.captureHeight) selected=\(request.pixelWidth)x\(request.pixelHeight) \(metadata.description)")
                     let callback = self.selectedCallback
                     self.cancel(notify: false) // Only now return input to the menu.
-                    callback?(cropped)
+                    callback?(image)
                 }
             } catch {
                 let message = "Screen capture failed: \(error.localizedDescription)"

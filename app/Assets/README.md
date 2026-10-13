@@ -1,8 +1,11 @@
 # TextPicker artwork
 
-The production icon is **Porcelain**: warm ivory and iris, with the inner mark
-enlarged 16% and the refined spacing preserved. It was selected from the earlier
-naming/icon studies in `design/icon-concepts/v3-pluck-colors/`.
+The production icon is **Contour hug / Medium**, in the **Midnight** palette:
+deep navy and electric ice, rounded edge-hugging corners and a larger central mark.
+The 48-unit contour grows inward to preserve the thin navy outer margin; the
+central mark retains the 1.76× scale of the original Contour hug. All three canonical
+assets exactly match `design/icon-concepts/v5-contour-weights/01-medium.*`.
+The original Contour hug and all earlier studies remain available.
 
 - `TextPicker.icns`: the approved Mac icon, copied byte-for-byte into every build.
 - `TextPicker.png`: 1024×1024 RGBA source raster.

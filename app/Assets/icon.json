@@ -1,10 +1,12 @@
 {
   "name": "TextPicker",
-  "variant": "Porcelain",
-  "inner_mark_scale": 1.16,
+  "variant": "Contour hug / Medium",
+  "palette": "Midnight",
+  "inner_mark_scale": 1.76,
+  "contour_width": 48,
   "files": {
-    "TextPicker.svg": "14934e15b60166c039dfb16e022ff03f5e57fde7cdc295969074085e2f0c824d",
-    "TextPicker.png": "7a1e35584b31101e995a20962ec56be68fb67b8825a1de2cae4b25c54206397c",
-    "TextPicker.icns": "a6a620e762a9422f3902d87d5a928dde76e086a20f22e89021b20dda716c5887"
+    "TextPicker.svg": "9fdfa094b7eecd59afa6004d4ce70448022bc678308844abf6a9821de337bc4e",
+    "TextPicker.png": "c7e59e506ec3c627b0168b665502d16c3274d4fa7ab6e6c031f5dc8b74fd150c",
+    "TextPicker.icns": "2e2a7aa52282a5d285806d227967cb6a84fab633c80b14d579f399b71819c2a0"
   }
 }

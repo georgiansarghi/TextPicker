@@ -15,7 +15,7 @@ enum CapturePermission: CaseIterable {
     var detail: String {
         switch self {
         case .screenRecording:
-            return "Allows TextPicker to read the region you select. Screenshots and recognized text stay on this Mac."
+            return "Reads the region you select for local text recognition. TextPicker does not record audio or upload your captures."
         case .accessibility:
             return "Enables the capture shortcut and region selection without dismissing open menus. TextPicker does not record your keystrokes."
         }
