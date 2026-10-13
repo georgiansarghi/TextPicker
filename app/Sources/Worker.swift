@@ -14,7 +14,6 @@ final class OCRWorker {
     private var timer: DispatchWorkItem?
     private var pendingID: String?
     private(set) var ready = false
-    private(set) var backend: Backend = .mlxSmall
     var onReady: ((Double) -> Void)?
     var onResult: ((String, Double) -> Void)?
     var onFailure: ((String) -> Void)?
@@ -30,24 +29,26 @@ final class OCRWorker {
 
     func start(_ backend: Backend) {
         stop()
-        self.backend = backend
         let session = Session()
         self.session = session
         let process = session.process
-        if backend.isMLX {
+        if backend == .nativeCPU {
+            process.executableURL = resources.deletingLastPathComponent().appendingPathComponent("MacOS/TextOCRNative")
+            process.arguments = [resources.appendingPathComponent("models/native").path]
+        } else {
             process.executableURL = resources.appendingPathComponent("python/bin/python3.12")
             process.arguments = ["-I", "-B", "-u", resources.appendingPathComponent("worker.py").path, resources.path, backend.rawValue]
-        } else {
-            process.executableURL = resources.deletingLastPathComponent().appendingPathComponent("MacOS/TextOCRVision")
-            process.arguments = [resources.path, backend.rawValue]
         }
         process.currentDirectoryURL = resources
         var environment = ProcessInfo.processInfo.environment
         // Bundled Python must not inherit an activated development environment.
         for key in ["PYTHONPATH", "PYTHONHOME", "VIRTUAL_ENV", "CONDA_PREFIX"] { environment.removeValue(forKey: key) }
-        environment["HF_HUB_OFFLINE"] = "1"
-        environment["HF_HUB_DISABLE_TELEMETRY"] = "1"
         environment["PYTHONDONTWRITEBYTECODE"] = "1"
+        if backend == .nativeCPU {
+            environment["VECLIB_MAXIMUM_THREADS"] = "4"
+            environment["INFEXP_THREADS"] = "4"
+            for key in ["INFEXP_PROFILE", "INFEXP_ALLOC"] { environment.removeValue(forKey: key) }
+        }
         process.environment = environment
         process.standardInput = session.input
         process.standardOutput = session.output
@@ -87,8 +88,8 @@ final class OCRWorker {
         }
         do {
             try process.run()
-            let limit = backend.isMLX ? startupTimeout : min(startupTimeout, 10)
-            scheduleTimeout(seconds: limit, message: "Model startup exceeded \(Int(limit)) seconds. Choose MLX Small/Tiny or Restart OCR Engine.")
+            let limit = startupTimeout
+            scheduleTimeout(seconds: limit, message: "Model startup exceeded \(Int(limit)) seconds. Choose another model or Restart OCR Engine.")
         } catch { fail("Cannot launch OCR worker: \(error.localizedDescription)") }
     }
 

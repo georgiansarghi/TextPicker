@@ -3,25 +3,35 @@ import ImageIO
 import UniformTypeIdentifiers
 
 enum Backend: String, CaseIterable {
-    case mlxSmall = "mlx-small", mlxTiny = "mlx-tiny"
-    case visionGPU = "vision-gpu", visionCPU = "vision-cpu"
+    case onnxSmall = "onnx-small", coreMLCPU = "coreml-cpu", nativeCPU = "native-cpu"
+
+    static func restored(_ value: String?) -> Backend {
+        value.flatMap(Backend.init(rawValue:)) ?? .coreMLCPU
+    }
     var title: String {
         switch self {
-        case .mlxSmall: return "MLX Small — balanced (default)"
-        case .mlxTiny: return "MLX Tiny — fastest"
-        case .visionGPU: return "Apple Vision — GPU (experimental)"
-        case .visionCPU: return "Apple Vision — CPU (experimental)"
+        case .onnxSmall: return "PP-OCRv6 Small — ONNX Runtime / CPU"
+        case .coreMLCPU: return "PP-OCRv6 Small — Core ML / CPU (recommended)"
+        case .nativeCPU: return "PP-OCRv6 Small — Native / CPU (experimental)"
         }
     }
     var shortTitle: String {
         switch self {
-        case .mlxSmall: return "MLX Small"
-        case .mlxTiny: return "MLX Tiny"
-        case .visionGPU: return "Vision GPU"
-        case .visionCPU: return "Vision CPU"
+        case .onnxSmall: return "Small · ONNX/CPU"
+        case .coreMLCPU: return "Small · Core ML/CPU"
+        case .nativeCPU: return "Small · Native/CPU"
         }
     }
-    var isMLX: Bool { self == .mlxSmall || self == .mlxTiny }
+    var toolTip: String {
+        switch self {
+        case .onnxSmall:
+            return "PP-OCRv6 Small through ONNX Runtime and RapidOCR on the CPU. Independent of Core ML; a working alternative with its own preprocessing."
+        case .coreMLCPU:
+            return "Converted PP-OCRv6 Small with CPU-only Core ML inference. Recommended on this Mac; Neural Engine excluded. NumPy/OpenCV handle pre/postprocessing."
+        case .nativeCPU:
+            return "Experimental: both PP-OCRv6 Small networks run in our C++/Accelerate CPU executor with unchanged FP32 weights. ImageIO decoding, minimal native OpenCV preprocessing/crops and Clipper box expansion; no Python, ONNX Runtime or Core ML inference. Core ML CPU remains recommended."
+        }
+    }
 }
 
 struct DisplayLayoutEntry: Equatable {

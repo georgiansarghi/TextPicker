@@ -1,8 +1,14 @@
 # TextOCR: Apple Silicon OCR prototype and benchmarks
 
-**The first prototype is installed at `~/Applications/TextOCR.app`.** Capture with **⌘⇧2**; MLX Small is the default and models can be changed from the menu bar. Enable Screen Recording and Accessibility on first use. The default input-interception path is designed to preserve open menus without activating TextOCR; no separate menu mode is needed. See **[app/TESTING.md](app/TESTING.md)** for the testing checklist and **[app/README.md](app/README.md)** for implementation/build details.
+**TextOCR v0.6.0 adds an opt-in native CPU backend.** Installed target: `~/Applications/TextOCR.app`. Capture with **⌘⇧2**. **PP-OCRv6 Small — Core ML / CPU** remains the default; **ONNX Runtime / CPU** remains available. **Native / CPU (experimental)** runs both detector and recognizer in the specialized C++/Accelerate executor, with native image preparation and perspective crops. Enable Screen Recording and Accessibility on first use. The default input-interception path is designed to preserve open menus without activating TextOCR; no separate menu mode is needed. See **[app/TESTING.md](app/TESTING.md)** for the testing checklist and **[app/README.md](app/README.md)** for implementation/build details.
 
-The rest of this document covers the preceding research and reproducible local benchmarks. Vision worked in those initial measurements but later stalled again during integration; the prototype labels its Vision modes experimental and uses independent MLX by default.
+The app is rebuilt from a clean runtime allowlist: no MLX, Tiny models, Apple Vision worker, Core ML GPU mode, pretrained patch checkpoint, Hugging Face tooling or PyMuPDF. Core ML uses NumPy/OpenCV helpers with parity checks against the previous pipeline. See [the app guide](app/README.md) and [measured cleanup results](app/cleanup-results/size.json).
+
+The complete native pipeline and its 25 synthetic stage/text parity cases are documented in **[inf-exp/PIPELINE.md](inf-exp/PIPELINE.md)**. Its measured runtime payload is 33.26 MiB, but adding it to the comparison app increases bundle size because the existing backends remain. Core ML CPU still has the lower matched median latency; native is experimental, not the new default.
+
+Previous builds and all research evidence remain separate from the app. Vision's investigation is preserved [here](experiments/vision_api/README.md); its real-capture timeouts motivated removing it from the supported app.
+
+The rest of this document covers historical research and reproducible benchmarks, including engines no longer shipped. These benchmark environments are not app dependencies.
 
 **Research report: [research/REPORT.md](research/REPORT.md).** It contains the recommendation, online sources, language/license comparison, M1 timings, MLX compilation findings, and evidence about a reproduced Apple Vision initialization stall.
 

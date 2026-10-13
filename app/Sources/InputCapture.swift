@@ -28,15 +28,19 @@ struct CaptureInputState {
         if type == .keyUp { return swallowedKeys.remove(key) != nil ? eat() : pass }
         if type == .keyDown {
             if shortcut {
+                // A repeat is not a new press. If its original press reached the
+                // menu before capture, its release must still reach that menu.
+                guard !repeatKey else { return eat() }
                 let first = swallowedKeys.insert(key).inserted
-                guard first && !repeatKey else { return eat() }
+                guard first else { return eat() }
                 if !active && canBegin { begin() }
                 return eat(.shortcut)
             }
             if swallowedKeys.contains(key) { return eat() }
             guard active else { return pass }
+            guard !repeatKey else { return eat() }
             swallowedKeys.insert(key)
-            if key == 53 && !repeatKey { capture(); return eat(.cancel) }
+            if key == 53 { capture(); return eat(.cancel) }
             return eat()
         }
         let down = [.leftMouseDown, .rightMouseDown, .otherMouseDown].contains(type)
@@ -45,6 +49,10 @@ struct CaptureInputState {
             guard swallowedButtons.remove(button) != nil else { return pass }
             if mode == .selecting && type == .leftMouseUp { capture(); return eat(.up) }
             return eat()
+        }
+        let drag = [.leftMouseDragged, .rightMouseDragged, .otherMouseDragged].contains(type)
+        if !active && drag && swallowedButtons.contains(button) {
+            return eat() // Drain the rest of a cancelled drag, not only its mouse-up.
         }
         guard active else { return pass }
         if down {
@@ -57,6 +65,20 @@ struct CaptureInputState {
         }
         return eat() // Scroll, extra buttons and movement while the image is being captured.
     }
+}
+
+/// Advance a software pointer independently of event.location, which can remain
+/// fixed when the mouse event is suppressed. Clamp to the closest actual display.
+func movedCapturePointer(_ point: CGPoint, dx: CGFloat, dy: CGFloat, displays: [CGRect]) -> CGPoint {
+    let next = CGPoint(x: point.x + dx, y: point.y + dy)
+    guard !displays.isEmpty else { return next }
+    if displays.contains(where: { $0.contains(next) }) { return next }
+    return displays.map { rect in
+        CGPoint(x: min(max(next.x, rect.minX), rect.maxX - 1),
+                y: min(max(next.y, rect.minY), rect.maxY - 1))
+    }.min { a, b in
+        hypot(a.x - next.x, a.y - next.y) < hypot(b.x - next.x, b.y - next.y)
+    } ?? point
 }
 
 /// One suppressing session event tap, including the shortcut itself. No Carbon
@@ -76,9 +98,9 @@ final class CaptureInput {
     private var session: UInt64 = 0
     private var beganAt: Double = 0
     private var hiddenCursorDisplay: CGDirectDisplayID?
+    private var displayBounds: [CGRect] = []
     private(set) var pointer = CGPoint.zero // Quartz desktop coordinates, top-left origin.
     var available: Bool { tap.map { CGEvent.tapIsEnabled(tap: $0) } ?? false }
-    var intercepting: Bool { state.active }
 
     @discardableResult func install() -> Bool {
         if available { return true }
@@ -117,7 +139,10 @@ final class CaptureInput {
     }
 
     @discardableResult func beginSelection() -> Bool {
-        guard available else { return false }
+        guard available else {
+            failureReason = "Input capture is unavailable. Check Accessibility/Input Monitoring and reopen TextOCR."
+            return false
+        }
         if !state.active {
             // Do not swallow the release of a click that the menu already received.
             guard !mouseButtonHeld else {
@@ -142,10 +167,14 @@ final class CaptureInput {
     func endSelection() {
         state.end()
         session &+= 1 // Discard queued pointer/shortcut actions from the old session.
-        if let display = hiddenCursorDisplay {
-            CGDisplayShowCursor(display)
-            hiddenCursorDisplay = nil
-        }
+        restoreCursor()
+    }
+    private func restoreCursor() {
+        guard let display = hiddenCursorDisplay else { return }
+        hiddenCursorDisplay = nil // Own exactly one matching show for a successful hide.
+        // Only restore after screenshot/cancellation. Warping sends no mouse event.
+        CGWarpMouseCursorPosition(pointer)
+        CGDisplayShowCursor(display)
     }
     func stop() {
         endSelection()
@@ -162,6 +191,14 @@ final class CaptureInput {
         session &+= 1
         state.begin()
         pointer = point
+        var count: UInt32 = 0
+        CGGetActiveDisplayList(0, nil, &count)
+        var ids = [CGDirectDisplayID](repeating: 0, count: Int(count))
+        if count > 0, CGGetActiveDisplayList(count, &ids, &count) == .success {
+            displayBounds = ids.prefix(Int(count)).map { CGDisplayBounds($0) }
+        } else {
+            displayBounds = [CGDisplayBounds(CGMainDisplayID())]
+        }
         beganAt = ProcessInfo.processInfo.systemUptime
     }
     private func interrupted(_ message: String) {
@@ -187,16 +224,14 @@ final class CaptureInput {
                                    canBegin: shortcut && canStartCapture && !mouseButtonHeld)
         if !wasActive && state.active { arm(at: event.location) }
         guard decision.consume else { return Unmanaged.passUnretained(event) }
-        let point = event.location
-        if decision.action == .move || decision.action == .down || decision.action == .up {
-            pointer = point
-            // Suppress the event but keep pointer coordinates advancing. This API
-            // moves the pointer without generating a mouse-move event for the menu.
-            if CGWarpMouseCursorPosition(point) != .success {
-                interrupted("Could not track the selection pointer. Input restored.")
-                return nil
-            }
+        if decision.action == .move {
+            pointer = movedCapturePointer(pointer,
+                dx: CGFloat(event.getIntegerValueField(.mouseEventDeltaX)),
+                dy: CGFloat(event.getIntegerValueField(.mouseEventDeltaY)), displays: displayBounds)
         }
+        // Down/up use the accumulated software position too, not the anchored
+        // physical pointer. Otherwise the rectangle would jump on click/release.
+        let point = pointer
         if let action = decision.action {
             let token = session
             DispatchQueue.main.async { [weak self] in
@@ -212,7 +247,7 @@ final class CaptureInput {
     }
     deinit {
         // Normal lifecycle calls stop(); this also balances cursor visibility on teardown.
-        if let display = hiddenCursorDisplay { CGDisplayShowCursor(display) }
+        restoreCursor()
         watchdog?.invalidate()
         if let tap { CFMachPortInvalidate(tap) }
         if let source { CFRunLoopRemoveSource(CFRunLoopGetMain(), source, .commonModes) }

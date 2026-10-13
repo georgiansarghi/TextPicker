@@ -5,7 +5,7 @@ import ApplicationServices
 final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private enum Phase { case starting, ready, preparing, selecting, recognizing, failed }
     private var phase: Phase = .starting
-    private var backend = Backend(rawValue: UserDefaults.standard.string(forKey: "backend") ?? "") ?? .mlxSmall
+    private var backend = Backend.restored(UserDefaults.standard.string(forKey: "backend"))
     private var statusItem: NSStatusItem!
     private let statusLine = NSMenuItem(title: "Starting…", action: nil, keyEquivalent: "")
     private let captureItem = NSMenuItem(title: "Capture Text", action: #selector(captureText), keyEquivalent: "2")
@@ -19,7 +19,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private var worker: OCRWorker!
     private var files: CaptureFiles!
     private var currentImage: URL?
-    private var selectionGeneration: UUID?
     private var selectionDisplayLayout: [DisplayLayoutEntry] = []
     private var selectionFinishedAt: Double = 0
     private var lastResult = "No captures yet"
@@ -36,6 +35,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         do { files = try CaptureFiles() }
         catch { alert("Cannot initialize TextOCR", error.localizedDescription); NSApp.terminate(nil); return }
+        // Persist migration from a removed backend; retain either surviving choice.
+        UserDefaults.standard.set(backend.rawValue, forKey: "backend")
         setupMenu()
         guard let resources = Bundle.main.resourceURL else { NSApp.terminate(nil); return }
         worker = OCRWorker(resources: resources)
@@ -108,9 +109,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         menu.addItem(.separator())
         let modelMenu = NSMenu(title: "OCR Model")
         modelMenu.autoenablesItems = false
+        let legend = NSMenuItem(title: "Model — Runtime / Device", action: nil, keyEquivalent: "")
+        legend.isEnabled = false
+        modelMenu.addItem(legend)
+        modelMenu.addItem(.separator())
         for backend in Backend.allCases {
             let item = NSMenuItem(title: backend.title, action: #selector(selectBackend(_:)), keyEquivalent: "")
             item.representedObject = backend.rawValue
+            item.toolTip = backend.toolTip
             item.target = self
             modelItems.append(item)
             modelMenu.addItem(item)
@@ -199,8 +205,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     }
 
     private func beginSelection() {
-        let token = UUID()
-        selectionGeneration = token
         selectionDisplayLayout = DisplayLayoutEntry.current()
         phase = .preparing; refreshMenu()
         // Interception is already armed by the tap. Install pointer callbacks now,
@@ -245,7 +249,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     }
 
     private func fail(_ message: String, stopWorker: Bool = true) {
-        selectionGeneration = nil
         capture.cancel(notify: false)
         if stopWorker { worker?.stop() }
         files?.remove(currentImage); currentImage = nil
@@ -261,7 +264,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         guard isCapturing else { return }
         let cancelledPhase = phase
         let wasRecognizing = phase == .recognizing
-        selectionGeneration = nil
         capture.cancel(notify: false)
         files.remove(currentImage); currentImage = nil
         toast.dismiss()
@@ -271,7 +273,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     }
     @objc private func restartEngine() {
         guard worker != nil else { return }
-        selectionGeneration = nil
         capture.cancel(notify: false)
         files.remove(currentImage); currentImage = nil
         toast.dismiss()

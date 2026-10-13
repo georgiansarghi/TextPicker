@@ -1,5 +1,9 @@
 .venv/
 .venv-mlx/
+.venv-coreml/
+experiments/coreml_recognizer/artifacts/
+experiments/coreml_pipeline/artifacts/
+experiments/vision_api/artifacts/
 .cache/
 __pycache__/
 benchmark/models/
