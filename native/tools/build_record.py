@@ -19,7 +19,7 @@ def inputs():
             path
             for path in (ROOT / folder).rglob("*")
             if path.is_file()
-            and path.suffix in (".cpp", ".hpp", ".h", ".swift", ".json", ".py")
+            and path.suffix in (".cpp", ".hpp", ".h", ".swift", ".json", ".py", ".npz")
         ]
     return {str(path.relative_to(ROOT)): sha(path) for path in sorted(paths)}
 

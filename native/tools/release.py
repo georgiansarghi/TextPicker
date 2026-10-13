@@ -25,10 +25,11 @@ def main():
     assets = bundle / "Contents/Resources/models/native"
     report = json.loads(options.report.read_text())
     verify_models(assets)
-    if not report["full_coreml_map_comparison"] or report["ratio_order_cases"] != 111:
-        raise RuntimeError(
-            "Full Core ML map comparison / ratio ordering gate is incomplete"
-        )
+    baseline = json.loads((ROOT / "tests/reference.json").read_text())
+    if (not report["full_detector_reference_comparison"]
+        or report["detector_reference_sha256"] != baseline["detector_maps"]["sha256"]
+        or report["ratio_order_cases"] != 111):
+        raise RuntimeError("Full detector-reference / ratio-ordering gate is incomplete")
     if report["build"]["inputs"] != inputs():
         raise RuntimeError(
             "Native sources changed after build/test; rebuild and rerun validation"
@@ -78,6 +79,7 @@ def main():
                 ".swift",
                 ".py",
                 ".json",
+                ".npz",
             ]:
                 source_hashes[str(path.relative_to(ROOT))] = sha(path)
     provenance = {
@@ -95,6 +97,7 @@ def main():
         "gate": "passed",
     }
     destination = options.output or options.report.with_name("native-release.json")
+    destination.parent.mkdir(parents=True, exist_ok=True)
     destination.write_text(json.dumps(provenance, indent=2))
     print("PASS: native release is bound to tested code/assets and system-only linkage")
 

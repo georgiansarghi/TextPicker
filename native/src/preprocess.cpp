@@ -40,7 +40,7 @@ Tensor recognizer_input(const std::vector<cv::Mat> &images) {
         require(im.type() == CV_8UC3 && im.rows > 0 && im.cols > 0, "Invalid recognition crop");
         ratio = std::max(ratio, im.cols / double(im.rows));
     }
-    require(48 * ratio < 4097, "Text line exceeds native width bound; use ONNX or capture a smaller region");
+    require(48 * ratio < 4097, "Text line exceeds native width bound; capture a smaller region");
     int width = int(48 * ratio);
     Tensor out({int(images.size()), 3, 48, width});
     for (size_t i = 0; i < images.size(); ++i) {

@@ -27,21 +27,21 @@ foreach(flag BUILD_SHARED_LIBS BUILD_TESTS BUILD_PERF_TESTS BUILD_EXAMPLES BUILD
 endforeach()
 set(WITH_CAROTENE ON CACHE BOOL "Preserve ARM interpolation" FORCE)
 set(WITH_KLEIDICV ON CACHE BOOL "Preserve ARM interpolation" FORCE)
-set(OPENCV_DOWNLOAD_PATH "${CMAKE_CURRENT_SOURCE_DIR}/.deps/opencv-cache" CACHE PATH "Pinned cache" FORCE)
-add_subdirectory(.deps/opencv-5.0.0 opencv EXCLUDE_FROM_ALL)
+set(OPENCV_DOWNLOAD_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../.build/deps/opencv-cache" CACHE PATH "Pinned cache" FORCE)
+add_subdirectory(../.build/deps/opencv-5.0.0 opencv EXCLUDE_FROM_ALL)
 
 add_library(textpicker_core STATIC
   src/buffer.cpp src/assets.cpp src/engine.cpp src/detector_ops.cpp src/preprocess.cpp src/geometry.cpp src/pipeline.cpp src/native_bridge.cpp
-  models/recognizer.cpp models/detector.cpp .deps/clipper.cpp)
+  models/recognizer.cpp models/detector.cpp ../.build/deps/clipper.cpp)
 target_include_directories(textpicker_core PUBLIC src)
-target_include_directories(textpicker_core PRIVATE .deps)
+target_include_directories(textpicker_core PRIVATE ../.build/deps)
 target_include_directories(textpicker_core SYSTEM PUBLIC
-  .deps/opencv-5.0.0/modules/core/include .deps/opencv-5.0.0/modules/imgproc/include
-  .deps/opencv-5.0.0/modules/geometry/include "${CMAKE_CURRENT_BINARY_DIR}")
+  ../.build/deps/opencv-5.0.0/modules/core/include ../.build/deps/opencv-5.0.0/modules/imgproc/include
+  ../.build/deps/opencv-5.0.0/modules/geometry/include "${CMAKE_CURRENT_BINARY_DIR}")
 target_compile_definitions(textpicker_core PRIVATE ACCELERATE_NEW_LAPACK)
 target_compile_options(textpicker_core PRIVATE -O3 -ffp-contract=off -Wall -Wextra -Werror
   -Wno-deprecated-declarations -fvisibility=hidden)
-set_source_files_properties(.deps/clipper.cpp PROPERTIES COMPILE_OPTIONS "-Wno-deprecated-copy-with-user-provided-copy")
+set_source_files_properties(../.build/deps/clipper.cpp PROPERTIES COMPILE_OPTIONS "-Wno-deprecated-copy-with-user-provided-copy")
 target_link_libraries(textpicker_core PUBLIC opencv_imgproc opencv_geometry opencv_flann opencv_core
   zlib tegra_hal kleidicv_hal kleidicv kleidicv_thread "-framework Accelerate")
 if(TEXT_PICKER_SANITIZER)
@@ -59,8 +59,8 @@ foreach(probe unit_tests pipeline_probe detector_probe order_probe boundary_test
 endforeach()
 enable_testing()
 add_test(NAME primitives COMMAND unit_tests)
-add_test(NAME boundaries COMMAND boundary_tests "${CMAKE_CURRENT_SOURCE_DIR}/models")
-add_test(NAME model_bounds COMMAND model_bounds "${CMAKE_CURRENT_SOURCE_DIR}/models")
+add_test(NAME boundaries COMMAND boundary_tests "${CMAKE_CURRENT_SOURCE_DIR}/../.build/models/native")
+add_test(NAME model_bounds COMMAND model_bounds "${CMAKE_CURRENT_SOURCE_DIR}/../.build/models/native")
 set_tests_properties(primitives boundaries model_bounds PROPERTIES
   ENVIRONMENT "VECLIB_MAXIMUM_THREADS=4;TEXTPICKER_THREADS=4" TIMEOUT 60)
 

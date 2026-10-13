@@ -11,49 +11,6 @@ func onCaptureRunLoop(_ action: @escaping @MainActor () -> Void) {
     CFRunLoopWakeUp(CFRunLoopGetMain())
 }
 
-enum Backend: String, CaseIterable {
-    case onnxSmall = "onnx-small", coreMLCPU = "coreml-cpu", nativeCPU = "native-cpu"
-
-    static func configured(_ raw: Any?) -> [Backend]? {
-        guard let raw else { return allCases } // Older full bundles / test executables.
-        guard let names = raw as? [String], !names.isEmpty, Set(names).count == names.count else { return nil }
-        let values = names.compactMap(Backend.init(rawValue:))
-        return values.count == names.count ? values : nil
-    }
-    static var bundled: [Backend] {
-        configured(Bundle.main.object(forInfoDictionaryKey: "TextPickerEngines")) ?? []
-    }
-    static func restored(_ value: String?, available: [Backend] = allCases) -> Backend {
-        precondition(!available.isEmpty)
-        if let saved = value.flatMap(Backend.init(rawValue:)), available.contains(saved) { return saved }
-        return [.coreMLCPU, .nativeCPU, .onnxSmall].first { available.contains($0) }!
-    }
-    var menuTitle: String {
-        switch self {
-        case .onnxSmall: return "ONNX Runtime CPU"
-        case .coreMLCPU: return "Core ML CPU"
-        case .nativeCPU: return "Native CPU"
-        }
-    }
-    var shortTitle: String {
-        switch self {
-        case .onnxSmall: return "Small · ONNX/CPU"
-        case .coreMLCPU: return "Small · Core ML/CPU"
-        case .nativeCPU: return "Small · Native/CPU"
-        }
-    }
-    var toolTip: String {
-        switch self {
-        case .onnxSmall:
-            return "PP-OCRv6 Small through ONNX Runtime and RapidOCR on the CPU. Independent of Core ML; a working alternative with its own preprocessing."
-        case .coreMLCPU:
-            return "Converted PP-OCRv6 Small with CPU-only Core ML inference. Recommended on this Mac; Neural Engine excluded. NumPy/OpenCV handle pre/postprocessing."
-        case .nativeCPU:
-            return "Both PP-OCRv6 Small networks run in our C++/Accelerate CPU executor with unchanged FP32 weights. ImageIO decoding, minimal native OpenCV preprocessing/crops and Clipper box expansion; no Python, ONNX Runtime or Core ML inference. Core ML CPU remains recommended."
-        }
-    }
-}
-
 struct DisplayLayoutEntry: Equatable {
     let id: UInt32
     let frame: CGRect
@@ -150,14 +107,24 @@ final class CaptureFiles {
     }
 }
 
+func diagnosticTracingEnabled(_ environment: [String: String]) -> Bool {
+    environment["TEXTPICKER_DEBUG"] == "1"
+}
+
 final class Diagnostics {
+    static let traceEnabled = diagnosticTracingEnabled(ProcessInfo.processInfo.environment)
     static let shared = Diagnostics()
     private let url: URL
     private init() {
         let folder = FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Library/Logs/TextPicker")
         try? FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true,
                                                 attributes: [.posixPermissions: 0o700])
-        url = folder.appendingPathComponent("prototype.log")
+        url = folder.appendingPathComponent("TextPicker.log")
+    }
+    /// Verbose metadata is opt-in. The autoclosure avoids formatting when disabled.
+    func trace(_ message: @autoclosure () -> String) {
+        guard Self.traceEnabled else { return }
+        log(message())
     }
     /// Call on main thread. No recognized text or screenshot content in this log.
     func log(_ message: String) {

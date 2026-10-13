@@ -13,7 +13,7 @@ parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument("--build", required=True, type=Path)
 options = parser.parse_args()
 probe = options.build.resolve() / "pipeline_probe"
-english = Image.open(ROOT / "benchmark/fixtures/english.png").convert("RGB")
+english = Image.open(ROOT / "tests/fixtures/english.png").convert("RGB")
 cases = {
     "english": english,
     "rotated": english.rotate(
@@ -27,13 +27,13 @@ with tempfile.TemporaryDirectory(prefix="textpicker-sanitizers-") as temporary:
     for name, image in cases.items():
         np.array(image)[:, :, ::-1].copy().tofile(path)
         result = run(
-            [probe, NATIVE / "models", path, image.width, image.height], check=True
+            [probe, ROOT / ".build/models/native", path, image.width, image.height], check=True
         )
         if result.stderr:
             raise RuntimeError(result.stderr)
         report["cases"][name] = json.loads(result.stdout)
-output = NATIVE / "results" / (options.build.name + ".json")
-output.parent.mkdir(exist_ok=True)
+output = ROOT / ".build/reports" / (options.build.name + ".json")
+output.parent.mkdir(parents=True, exist_ok=True)
 output.write_text(json.dumps(report, indent=2))
 print(
     "PASS: full C++ pipeline sanitizer cases (third-party OpenCV is not instrumented)"

@@ -101,12 +101,12 @@ final class CaptureController {
         guard !overlays.isEmpty else { fail("No displays are available for capture"); return }
         input.onPointer = { [weak self] action, point in self?.handle(action, quartzPoint: point) }
         input.onCancel = { [weak self] in
-            Diagnostics.shared.log("Selection cancelled: intercepted Escape/right-click")
+            Diagnostics.shared.trace("Selection cancelled: intercepted Escape/right-click")
             self?.cancel()
         }
         updatePointer(appKitPoint(input.pointer, mainDisplayHeight: mainDisplayHeight))
         for overlay in overlays { overlay.panel.orderFrontRegardless() }
-        Diagnostics.shared.log("Selection ready: input intercepted; no key window")
+        Diagnostics.shared.trace("Selection ready: input intercepted; no key window")
         onSelecting?()
     }
 
@@ -124,7 +124,7 @@ final class CaptureController {
             dragIndex = overlays.firstIndex { $0.screen.frame.contains(point) }
             origin = point
             for overlay in overlays { overlay.view.selection = .zero }
-            Diagnostics.shared.log("Selection mouse-down intercepted")
+            Diagnostics.shared.trace("Selection mouse-down intercepted")
         }
         guard let index = dragIndex, let origin else {
             if action == .up { cancel() }
@@ -177,10 +177,12 @@ final class CaptureController {
                 let image = try await request.capture { config in
                     try await SCScreenshotManager.captureImage(contentFilter: filter, configuration: config)
                 }
-                let metadata = CaptureImageDiagnostics(image)
+                let metadata = Diagnostics.traceEnabled ? CaptureImageDiagnostics(image).description : nil
                 onCaptureRunLoop { [weak self] in
                     guard let self, self.generation == token else { return }
-                    Diagnostics.shared.log("Region capture requested=\(request.captureWidth)x\(request.captureHeight) selected=\(request.pixelWidth)x\(request.pixelHeight) \(metadata.description)")
+                    if let metadata {
+                        Diagnostics.shared.trace("Region capture requested=\(request.captureWidth)x\(request.captureHeight) selected=\(request.pixelWidth)x\(request.pixelHeight) \(metadata)")
+                    }
                     let callback = self.selectedCallback
                     self.cancel(notify: false) // Only now return input to the menu.
                     callback?(image)

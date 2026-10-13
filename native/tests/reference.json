@@ -1,5 +1,11 @@
 {
-  "provenance": "Validated v0.6.0 checkpoint e8e2e9e. Baseline-output preservation, not accuracy for unsupported scripts. Detector samples plus full-map comparison when --reference-app is supplied.",
+  "provenance": "Frozen PP-OCRv6 Small FP32 baseline: exact text/stages and detector samples. Output preservation, not language-accuracy certification.",
+  "detector_maps": {
+    "file": "detector-maps.npz",
+    "sha256": "9281d901dc93006c516ab1bdd6c19b9274718ca761b35d2786fde00d08940eb0",
+    "source": "Independent FP32 Core ML CPU detector, evaluated on all 25 committed/generated regression inputs before removing that engine.",
+    "encoding": "round(probability * 65535), uint16, flattened C order; maximum error 0.5/65535. Test data only: inference and model weights remain FP32."
+  },
   "cases": [
     {
       "id": "arabic",

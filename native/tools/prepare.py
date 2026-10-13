@@ -10,6 +10,7 @@ import urllib.request
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+MODEL_ASSETS = ROOT.parent / ".build/models/native"
 
 
 def digest(path):
@@ -31,8 +32,9 @@ def import_models(source):
     if source.suffix == ".app":
         source = source / "Contents/Resources/models/native"
     verify_models(source)
+    MODEL_ASSETS.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(
-        dir=ROOT / "models", prefix=".import-"
+        dir=MODEL_ASSETS, prefix=".import-"
     ) as temporary:
         temporary = Path(temporary)
         for name in json.loads((ROOT / "models/manifest.json").read_text())["files"]:
@@ -40,11 +42,11 @@ def import_models(source):
         verify_models(temporary)
         # Only validated bytes become visible to a build; never modify source assets.
         for path in temporary.iterdir():
-            path.replace(ROOT / "models" / path.name)
+            path.replace(MODEL_ASSETS / path.name)
 
 
 def dependencies(offline):
-    cache = ROOT / ".deps"
+    cache = ROOT.parent / ".build/deps"
     for item in json.loads((ROOT / "dependencies.json").read_text()):
         path = cache / item["path"]
         path.parent.mkdir(parents=True, exist_ok=True)
@@ -88,7 +90,7 @@ def main():
             parser.error("models requires a source directory or app bundle")
         import_models(options.source)
     else:
-        verify_models(options.source or ROOT / "models")
+        verify_models(options.source or MODEL_ASSETS)
     print(f"Native {options.action}: verified")
 
 

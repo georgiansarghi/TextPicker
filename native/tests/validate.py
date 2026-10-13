@@ -6,7 +6,6 @@ import json
 import os
 import shutil
 import subprocess
-import sys
 import tempfile
 from pathlib import Path
 
@@ -14,6 +13,7 @@ import numpy as np
 from PIL import Image
 
 from worker_client import Worker
+from reference_maps import compare_detector
 
 NATIVE = Path(__file__).resolve().parents[1]
 ROOT = NATIVE.parent
@@ -26,7 +26,7 @@ def digest(path):
 
 def extra_images(directory):
     directory.mkdir()
-    image = Image.open(ROOT / "benchmark/fixtures/english.png").convert("RGB")
+    image = Image.open(ROOT / "tests/fixtures/english.png").convert("RGB")
     for angle in [8, -17, 90]:
         image.rotate(
             angle, resample=Image.Resampling.BICUBIC, expand=True, fillcolor="white"
@@ -35,7 +35,7 @@ def extra_images(directory):
         directory / "edge-clipped.png"
     )
     image.convert("L").save(directory / "grayscale.png")
-    german = Image.open(ROOT / "benchmark/fixtures/german.png")
+    german = Image.open(ROOT / "tests/fixtures/german.png")
     german.resize((german.width * 2, german.height * 2), Image.Resampling.BICUBIC).save(
         directory / "german-2x.png"
     )
@@ -68,7 +68,7 @@ def validate(options, directory):
     models = (
         options.bundle / "Contents/Resources/models/native"
         if options.bundle
-        else NATIVE / "models"
+        else ROOT / ".build/models/native"
     )
     report = {
         "worker_sha256": digest(worker),
@@ -115,23 +115,20 @@ def validate(options, directory):
         assert list(map(int, row.split())) == list(np.argsort(values))
     report["ratio_order_cases"] = len(ratios)
     extra_images(directory / "extra")
-    cases = json.loads((NATIVE / "tests/reference.json").read_text())["cases"]
-    reference = None
-    if options.reference_app:
-        sys.path.insert(0, str(ROOT / "app"))
-        from coreml_backend import CoreMLPipeline, detector_input
-
-        reference = CoreMLPipeline(
-            options.reference_app.resolve() / "Contents/Resources"
-        )
-    try:
+    baseline = json.loads((NATIVE / "tests/reference.json").read_text())
+    cases = baseline["cases"]
+    maps = NATIVE / "tests" / baseline["detector_maps"]["file"]
+    assert digest(maps) == baseline["detector_maps"]["sha256"], "Detector reference changed"
+    report["detector_reference_sha256"] = digest(maps)
+    with np.load(maps, allow_pickle=False) as reference:
+        assert set(reference.files) == {case["id"] for case in cases}
         with Worker([worker, models]) as client:
             ready = client.receive(32)
             assert ready["type"] == "ready" and ready["device_policy"] == "CPU", ready
             report["ready"] = ready
             for case in cases:
                 parent = (
-                    ROOT / "benchmark/fixtures"
+                    ROOT / "tests/fixtures"
                     if case["group"] == "base"
                     else directory / "extra"
                 )
@@ -182,13 +179,7 @@ def validate(options, directory):
                 assert np.allclose(
                     detector[samples], case["detector_samples"], atol=1e-3, rtol=1e-4
                 ), case["id"]
-                if reference:
-                    tensor, _ = detector_input(image)
-                    expected_map = reference.forward(0, tensor).ravel()
-                    assert np.allclose(detector, expected_map, atol=1e-3, rtol=1e-4), (
-                        case["id"]
-                    )
-                    assert reference.predict(image) == case["text"], case["id"]
+                map_error = compare_detector(detector, reference[case["id"]])
                 response = client.request(case["id"], image_path)
                 assert (
                     response["type"] == "result" and response["text"] == case["text"]
@@ -198,6 +189,7 @@ def validate(options, directory):
                         "id": case["id"],
                         "stages_exact": True,
                         "text_exact": True,
+                        "detector_max_reference_error": map_error,
                         "ms": response["ocr_ms"],
                         "peak_probe_rss": prediction["peak_rss_bytes"],
                     }
@@ -216,7 +208,7 @@ def validate(options, directory):
             )
             (directory / "broken.png").write_bytes(b"not an image")
             os.mkfifo(directory / "fifo.png", 0o600)
-            (directory / "link.png").symlink_to(ROOT / "benchmark/fixtures/english.png")
+            (directory / "link.png").symlink_to(ROOT / "tests/fixtures/english.png")
             for name in ["large", "alpha", "broken", "missing", "fifo", "link"]:
                 assert (
                     client.request(name, directory / f"{name}.png")["type"] == "error"
@@ -235,16 +227,13 @@ def validate(options, directory):
             ]:
                 assert client.send(value)["type"] == "error"
             response = client.request(
-                "recovery", ROOT / "benchmark/fixtures/english.png"
+                "recovery", ROOT / "tests/fixtures/english.png"
             )
             assert response["text"] == next(
                 c["text"] for c in cases if c["id"] == "english"
             )
             client.finish()
         report["invalid_inputs_recovery_eof"] = "passed"
-    finally:
-        if reference:
-            reference.close()
     # Asset corruption tests never alter the production assets.
     for asset in ["detector.weights", "recognizer.weights", "characters.bin"]:
         for corruption in [False, True]:
@@ -273,7 +262,7 @@ def validate(options, directory):
     (relocated / "models").mkdir()
     for name in report["models"]:
         shutil.copy2(models / name, relocated / "models" / name)
-    shutil.copy2(ROOT / "benchmark/fixtures/english.png", relocated / "input.png")
+    shutil.copy2(ROOT / "tests/fixtures/english.png", relocated / "input.png")
     policy = f'(version 1)(allow default)(deny network*)(deny file-write*)(deny file-read* (subpath "{ROOT}"))'
     with Worker([relocated / "Worker", relocated / "models"], policy) as client:
         assert client.receive(32)["type"] == "ready"
@@ -283,17 +272,16 @@ def validate(options, directory):
         )
         client.finish()
     report["relocated_readonly_offline"] = "passed"
-    report["full_coreml_map_comparison"] = reference is not None
+    report["full_detector_reference_comparison"] = True
     return report
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--build", type=Path, default=NATIVE / ".build")
+    parser.add_argument("--build", type=Path, default=ROOT / ".build/native")
     parser.add_argument("--bundle", type=Path)
-    parser.add_argument("--reference-app", type=Path)
     parser.add_argument(
-        "--output", type=Path, default=NATIVE / "results/validation.json"
+        "--output", type=Path, default=ROOT / ".build/reports/native-validation.json"
     )
     options = parser.parse_args()
     options.build = options.build.resolve()

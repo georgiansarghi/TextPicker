@@ -12,8 +12,6 @@ final class OCRWorker {
         var rejectedOutput = false // Access these framing/delivery fields only on queue.
         var queuedMessages = 0
         var queuedBytes = 0
-        let backend: Backend
-        init(_ backend: Backend) { self.backend = backend }
     }
     private var session: Session?
     private var timer: Timer?
@@ -32,28 +30,18 @@ final class OCRWorker {
         self.recognitionTimeout = recognitionTimeout
     }
 
-    func start(_ backend: Backend) {
+    func start() {
         stop()
-        let session = Session(backend)
+        let session = Session()
         self.session = session
         let process = session.process
-        if backend == .nativeCPU {
-            process.executableURL = resources.deletingLastPathComponent().appendingPathComponent("MacOS/TextPickerNative")
-            process.arguments = [resources.appendingPathComponent("models/native").path]
-        } else {
-            process.executableURL = resources.appendingPathComponent("python/bin/python3.12")
-            process.arguments = ["-I", "-B", "-u", resources.appendingPathComponent("worker.py").path, resources.path, backend.rawValue]
-        }
+        process.executableURL = resources.deletingLastPathComponent().appendingPathComponent("MacOS/TextPickerNative")
+        process.arguments = [resources.appendingPathComponent("models/native").path]
         process.currentDirectoryURL = resources
         var environment = ProcessInfo.processInfo.environment
-        // Bundled Python must not inherit an activated development environment.
-        for key in ["PYTHONPATH", "PYTHONHOME", "VIRTUAL_ENV", "CONDA_PREFIX"] { environment.removeValue(forKey: key) }
-        environment["PYTHONDONTWRITEBYTECODE"] = "1"
-        if backend == .nativeCPU {
-            environment["VECLIB_MAXIMUM_THREADS"] = "4"
-            environment["TEXTPICKER_THREADS"] = "4"
-            environment["OPENCV_LOG_LEVEL"] = "ERROR"
-        }
+        environment["VECLIB_MAXIMUM_THREADS"] = "4"
+        environment["TEXTPICKER_THREADS"] = "4"
+        environment["OPENCV_LOG_LEVEL"] = "ERROR"
         process.environment = environment
         process.standardInput = session.input
         process.standardOutput = session.output
@@ -141,7 +129,7 @@ final class OCRWorker {
     private func receive(_ message: [String: Any]) {
         switch message["type"] as? String {
         case "ready":
-            guard !ready, pendingID == nil, message["backend"] as? String == session?.backend.rawValue,
+            guard !ready, pendingID == nil, message["backend"] as? String == "native-cpu",
                   let elapsed = validDuration(message["load_ms"]) else {
                 fail("Invalid or unexpected worker ready response"); return
             }

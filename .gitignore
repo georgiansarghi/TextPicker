@@ -1,17 +1,11 @@
+# Local tools and generated output
 .venv/
-.venv-mlx/
-.venv-coreml/
-experiments/coreml_recognizer/artifacts/
-experiments/coreml_pipeline/artifacts/
-experiments/vision_api/artifacts/
-.cache/
+.build/
 __pycache__/
-benchmark/models/
-benchmark/vision
-benchmark/render
-vendor/
-app/build/
-app/models/
+*.pyc
 .DS_Store
-# Local installation settings are preserved on disk, not published with evidence.
-app/**/preferences-*.plist
+
+# Never check in captures, logs or local settings snapshots.
+*.log
+*.ips
+preferences-*.plist

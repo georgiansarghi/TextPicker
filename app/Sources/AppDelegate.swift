@@ -5,8 +5,6 @@ import ApplicationServices
 final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private enum Phase { case starting, ready, preparing, selecting, recognizing, failed }
     private var phase: Phase = .starting
-    private let availableBackends = Backend.bundled
-    private var backend = Backend.coreMLCPU
     private var statusItem: NSStatusItem!
     private var controls: CaptureMenu!
     private var shortcut = CaptureShortcut.restored()
@@ -48,17 +46,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         do { files = try CaptureFiles() }
         catch { showStartupError("Cannot initialize TextPicker", error.localizedDescription); NSApp.terminate(nil); return }
-        guard !availableBackends.isEmpty else {
-            showStartupError("Invalid TextPicker build", "No valid OCR engine is configured. Reinstall TextPicker.")
-            NSApp.terminate(nil); return
-        }
-        let saved = UserDefaults.standard.string(forKey: "backend")
-        backend = Backend.restored(saved, available: availableBackends)
-        // A smaller edition must not overwrite a valid preference for an engine
-        // it omits. Returning to the full edition restores that saved choice.
-        if saved.flatMap(Backend.init(rawValue:)) == nil {
-            UserDefaults.standard.set(backend.rawValue, forKey: "backend")
-        }
         toast.suppressRoutineNotifications = !showCaptureFeedback
         setupMenu()
         guard let resources = Bundle.main.resourceURL else { NSApp.terminate(nil); return }
@@ -66,7 +53,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         worker.onReady = { [weak self] milliseconds in
             guard let self else { return }
             self.phase = .ready
-            Diagnostics.shared.log("Ready backend=\(self.backend.rawValue) warmup_ms=\(Int(milliseconds))")
+            Diagnostics.shared.log("Ready")
+            Diagnostics.shared.trace("Warmup \(Int(milliseconds)) ms")
             self.refreshMenu()
         }
         worker.onResult = { [weak self] text, milliseconds in self?.complete(text: text, ocrMS: milliseconds) }
@@ -79,7 +67,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         }
         input.onShortcut = { [weak self] in
             guard let self else { return }
-            Diagnostics.shared.log("Shortcut received phase=\(self.phase)")
+            Diagnostics.shared.trace("Shortcut received phase=\(self.phase)")
             if self.isCapturing { self.cancelActiveCapture(reason: "shortcut") } else { self.captureText() }
         }
         input.onFailure = { [weak self] message in
@@ -103,7 +91,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             Task { @MainActor in
                 guard let self, self.phase == .preparing || self.phase == .selecting else { return }
                 guard self.selectionDisplayLayout != DisplayLayoutEntry.current() else {
-                    Diagnostics.shared.log("Display notification ignored: geometry unchanged")
+                    Diagnostics.shared.trace("Display notification ignored: geometry unchanged")
                     return
                 }
                 self.cancelActiveCapture(reason: "display layout changed")
@@ -132,7 +120,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             capture: { [weak self] in self?.captureText() },
             retry: { [weak self] in self?.restartEngine() },
             permission: { [weak self] permission, action in self?.performPermissionAction(action, for: permission) },
-            backend: { [weak self] in self?.selectBackend($0) },
             lines: { [weak self] value in
                 guard let self else { return }
                 if self.controls.shortcut.recording { self.stopRecordingShortcut() }
@@ -168,7 +155,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
                 self.loginItem.setRequested(value)
                 self.refreshMenu()
             },
-            loginSettings: { [weak self] in self?.loginItem.openSettings() }), backends: availableBackends)
+            loginSettings: { [weak self] in self?.loginItem.openSettings() }))
         controls.menu.delegate = self
         statusItem.menu = controls.menu
         input.captureShortcut = shortcut
@@ -240,11 +227,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         guard statusItem != nil else { return }
         let status: String
         switch phase {
-        case .starting: status = "Warming \(backend.shortTitle)…"
-        case .ready: status = access.ready ? "Ready • \(backend.shortTitle)" : "Permissions required"
+        case .starting: status = "Getting ready…"
+        case .ready: status = access.ready ? "Ready" : "Permissions required"
         case .preparing: status = "Preparing screen capture…"
         case .selecting: status = "Drag a region • Esc to cancel"
-        case .recognizing: status = "Recognizing • \(backend.shortTitle)…"
+        case .recognizing: status = "Recognizing text…"
         case .failed: status = "OCR unavailable — use Retry OCR Engine"
         }
         let preservingSelection = menuOpen && [.preparing, .selecting].contains(phase)
@@ -256,7 +243,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         // so missing access opens setup without arming/blocking selection input.
         input.canStartCapture = phase == .ready && access.ready && input.available
         controls.update(ready: phase == .ready, capturing: isCapturing, failed: phase == .failed,
-                        access: access, backend: backend, keepLines: keepLines,
+                        access: access, keepLines: keepLines,
                         playSound: playSound, shortcut: shortcut, preservingSelection: preservingSelection,
                         additiveClipboard: additiveClipboard, showCaptureFeedback: showCaptureFeedback,
                         loginRequested: loginItem.status.requested, loginHelpTitle: loginItem.helpTitle, loginError: loginItem.error,
@@ -325,7 +312,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
                 toast.show(.copyFailed)
             }
         }
-        Diagnostics.shared.log("backend=\(backend.rawValue) \(lastResult)")
+        Diagnostics.shared.trace(lastResult)
         refreshMenu()
     }
 
@@ -348,7 +335,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         toast.dismiss()
         if wasRecognizing { restartEngine() }
         else { phase = worker.ready ? .ready : .failed; refreshMenu() }
-        Diagnostics.shared.log("Capture cancelled reason=\(reason) phase=\(cancelledPhase); clipboard unchanged")
+        Diagnostics.shared.trace("Capture cancelled reason=\(reason) phase=\(cancelledPhase); clipboard unchanged")
     }
     private func restartEngine() {
         guard worker != nil else { return }
@@ -357,13 +344,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         toast.dismiss()
         phase = .starting
         refreshMenu()
-        worker.start(backend)
-    }
-    private func selectBackend(_ value: Backend) {
-        guard !isCapturing, availableBackends.contains(value), value != backend else { return }
-        backend = value
-        UserDefaults.standard.set(value.rawValue, forKey: "backend")
-        restartEngine()
+        worker.start()
     }
     private func readAccess(repairInput: Bool) -> CaptureAccess {
         let trusted = AXIsProcessTrusted()

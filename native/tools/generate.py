@@ -27,7 +27,7 @@ def generate(stage):
     assets = json.loads((ROOT / "models/manifest.json").read_text())["files"]
     if layout["weights_sha256"] != assets[f"{name}.weights"]:
         raise RuntimeError("Layout and deployed weight fingerprints disagree")
-    size = (ROOT / "models" / f"{name}.weights").stat().st_size
+    size = (ROOT.parent / ".build/models/native" / f"{name}.weights").stat().st_size
     for tensor in layout["tensors"].values():
         if not (
             tensor["offset"] >= 64

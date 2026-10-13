@@ -1,4 +1,4 @@
-// Native port of the frozen mlx4ocr / app/coreml_backend.py pipeline (MIT).
+// Native port of the frozen mlx4ocr pipeline (MIT; see licenses/mlx4ocr-MIT.txt).
 // All inference is the generated C++ executor. OpenCV is a minimal image/geometry subset.
 #include "pipeline.hpp"
 #include "native_bridge.h"
@@ -64,7 +64,7 @@ std::string Pipeline::predict(const cv::Mat &image, const std::filesystem::path 
             std::swap(s.width, s.height);
         double ratio = s.width / double(s.height);
         require(ratio * 48 < 4097,
-                "Text line exceeds native width bound; use ONNX or capture a smaller region");
+                "Text line exceeds native width bound; capture a smaller region");
         ratios.push_back(ratio);
     }
     auto order = numpy_order(ratios);

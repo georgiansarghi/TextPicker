@@ -242,7 +242,6 @@ final class CaptureMenu: NSObject {
         var capture: () -> Void
         var retry: () -> Void
         var permission: (CapturePermission, PermissionMenuAction) -> Void
-        var backend: (Backend) -> Void
         var lines: (Bool) -> Void
         var sound: (Bool) -> Void
         var record: () -> Void
@@ -260,25 +259,21 @@ final class CaptureMenu: NSObject {
     let permissionHint = NSMenuItem(title: "", action: nil, keyEquivalent: "")
     let shortcut = ShortcutMenuRow()
     let shortcutHint = NSMenuItem(title: "", action: nil, keyEquivalent: "")
-    let engineItem = NSMenuItem(title: "OCR Engine", action: nil, keyEquivalent: "")
-    let engineMenu = NSMenu(title: "OCR Engine")
     let lines = MenuToggleRow(title: "Preserve Line Breaks")
     let sound = MenuToggleRow(title: "Play Sound When Copied")
     let additive = MenuToggleRow(title: "Additive Clipboard")
     let feedback = MenuToggleRow(title: "Show Capture Feedback")
     let login = MenuToggleRow(title: "Launch at Login")
     let loginHelp = NSMenuItem(title: "", action: nil, keyEquivalent: "")
-    private(set) var engines: [NSMenuItem] = []
     private(set) var shortcutItem: NSMenuItem!
     private let actions: Actions
     private var permissionActionsEnabled = true
 
-    init(actions: Actions, backends: [Backend] = Backend.allCases) {
-        precondition(!backends.isEmpty && Set(backends).count == backends.count)
+    init(actions: Actions) {
         self.actions = actions
         super.init()
         menu.autoenablesItems = false
-        menu.showsStateColumn = false // Only the engine submenu needs a checkmark gutter.
+        menu.showsStateColumn = false // Settings rows own their native checkbox alignment.
         add(capture, #selector(captureAction))
         add(retry, #selector(retryAction))
         menu.addItem(.separator())
@@ -292,19 +287,6 @@ final class CaptureMenu: NSObject {
         }
         loginHelp.isHidden = true
         add(loginHelp, #selector(loginSettingsAction))
-        engineMenu.autoenablesItems = false
-        engineMenu.showsStateColumn = true
-        engineItem.submenu = engineMenu
-        if backends.count > 1 { menu.addItem(engineItem) }
-        for backend in [Backend.nativeCPU, .coreMLCPU, .onnxSmall] where backends.contains(backend) {
-            let item = NSMenuItem(title: backend.menuTitle, action: nil, keyEquivalent: "")
-            item.representedObject = backend.rawValue
-            item.toolTip = backend.toolTip
-            item.target = self
-            item.action = #selector(engineAction(_:))
-            engineMenu.addItem(item)
-            engines.append(item)
-        }
         menu.addItem(.separator())
         addSection("Permissions")
         for permission in CapturePermission.allCases {
@@ -355,7 +337,7 @@ final class CaptureMenu: NSObject {
         return item
     }
     func update(ready: Bool, capturing: Bool, failed: Bool,
-                access: CaptureAccess, backend: Backend, keepLines: Bool, playSound: Bool, shortcut value: CaptureShortcut,
+                access: CaptureAccess, keepLines: Bool, playSound: Bool, shortcut value: CaptureShortcut,
                 preservingSelection: Bool = false, additiveClipboard: Bool = false,
                 showCaptureFeedback: Bool = true, loginRequested: Bool = false,
                 loginHelpTitle: String? = nil, loginError: String? = nil,
@@ -392,12 +374,6 @@ final class CaptureMenu: NSObject {
         loginHelp.title = loginHelpTitle ?? ""
         loginHelp.toolTip = loginError
         loginHelp.isHidden = loginHelpTitle == nil
-        engineItem.isEnabled = !capturing
-        engineItem.toolTip = "Current engine: \(backend.shortTitle)"
-        for item in engines {
-            item.state = item.representedObject as? String == backend.rawValue ? .on : .off
-            item.isEnabled = !capturing
-        }
     }
     func highlight(_ item: NSMenuItem?) -> Set<UInt16> {
         for row in [shortcut as SettingsMenuRow, lines, additive, sound, feedback, login] + CapturePermission.allCases.map({ permissionRows[$0]! }) {
@@ -428,8 +404,5 @@ final class CaptureMenu: NSObject {
     @objc private func recordAction() { shortcut.record() }
     @objc private func toggleAction(_ item: NSMenuItem) { (item.view as? MenuToggleRow)?.activate() }
     @objc private func loginSettingsAction() { actions.loginSettings() }
-    @objc private func engineAction(_ item: NSMenuItem) {
-        if let raw = item.representedObject as? String, let backend = Backend(rawValue: raw) { actions.backend(backend) }
-    }
     @objc private func quitAction() { actions.quit() }
 }
