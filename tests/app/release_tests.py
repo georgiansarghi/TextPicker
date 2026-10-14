@@ -1,4 +1,4 @@
-"""Release metadata must explicitly agree with the app and preview signing policy."""
+"""Release metadata must explicitly agree with the app and signing policy."""
 import json
 from pathlib import Path
 import plistlib
@@ -19,8 +19,8 @@ class ReleaseTests(unittest.TestCase):
         (self.root / '.github').mkdir()
         (self.root / 'app/Info.plist').write_bytes(plistlib.dumps({'CFBundleShortVersionString': '0.11.0'}))
         (self.root / '.github/RELEASE.md').write_text('Explicitly reviewed release notes')
-        self.config = {'tag': 'v0.11.0', 'title': 'TextPicker 0.11.0 — Preview',
-                       'prerelease': True, 'signing': 'ad-hoc'}
+        self.config = {'tag': 'v0.11.0', 'title': 'TextPicker 0.11.0',
+                       'prerelease': False, 'signing': 'self-signed', 'certificate_sha256': 'ab' * 32}
         self.save()
 
     def save(self):
@@ -38,12 +38,14 @@ class ReleaseTests(unittest.TestCase):
             release_config(self.root)
 
     def test_signing_policy(self):
-        for key, value in [('prerelease', False), ('prerelease', 1), ('signing', 'Developer ID')]:
+        for key, value in [('prerelease', True), ('prerelease', 0), ('signing', 'ad-hoc'),
+                           ('signing', 'Developer ID'), ('certificate_sha256', None),
+                           ('certificate_sha256', 'AB' * 32), ('certificate_sha256', 'ab' * 31)]:
             with self.subTest(key=key, value=value):
                 original = self.config[key]
                 self.config[key] = value
                 self.save()
-                with self.assertRaisesRegex(RuntimeError, 'preview releases only'):
+                with self.assertRaisesRegex(RuntimeError, 'pinned certificate'):
                     release_config(self.root)
                 self.config[key] = original
 

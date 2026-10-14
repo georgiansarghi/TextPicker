@@ -1,6 +1,7 @@
 """Build and qualify a fresh native TextPicker app."""
 import argparse
 import json
+import os
 from pathlib import Path
 import plistlib
 import shutil
@@ -13,6 +14,10 @@ from model_pack import ensure_models
 
 BUILD = ROOT / '.build/apps'
 PYTHON = ROOT / '.venv/bin/python'
+# Releases sign with one stable certificate so macOS keeps Screen Recording and
+# Accessibility grants across updates. Local builds default to ad-hoc ('-').
+SIGN_IDENTITY = os.environ.get('TEXTPICKER_SIGN_IDENTITY') or '-'
+SIGN_KEYCHAIN = os.environ.get('TEXTPICKER_SIGN_KEYCHAIN')
 
 
 def run(*args):
@@ -22,6 +27,11 @@ def run(*args):
 def copy(source, destination):
     destination.parent.mkdir(parents=True, exist_ok=True)
     shutil.copy2(source, destination)
+
+
+def sign(bundle, identifier):
+    keychain = ['--keychain', SIGN_KEYCHAIN] if SIGN_KEYCHAIN else []
+    run('codesign', '--force', '--sign', SIGN_IDENTITY, *keychain, '--identifier', identifier, bundle)
 
 
 def main():
@@ -59,13 +69,13 @@ def main():
         verify_bundle(bundle, evidence=False)
         # Never deep-sign: preserve the helper's tested artifact identity.
         run('codesign', '--verify', '--strict', macos / 'TextPickerNative')
-        run('codesign', '--force', '--sign', '-', '--identifier', info['CFBundleIdentifier'], bundle)
+        sign(bundle, info['CFBundleIdentifier'])
         report = evidence / 'native-validation.json'
         run('bash', ROOT / 'native/test.sh', '--skip-build', '--bundle', bundle, '--output', report)
         run(PYTHON, '-B', ROOT / 'native/tools/release.py', '--bundle', bundle, '--report', report)
         copy(report, resources / 'native-validation.json')
         # Seal evidence into the enclosing app without re-signing the helper.
-        run('codesign', '--force', '--sign', '-', '--identifier', info['CFBundleIdentifier'], bundle)
+        sign(bundle, info['CFBundleIdentifier'])
         run('codesign', '--verify', '--deep', '--strict', bundle)
         verify_bundle(bundle)
         if destination.exists():

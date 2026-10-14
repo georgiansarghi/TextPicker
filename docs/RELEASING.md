@@ -36,13 +36,13 @@ available. This avoids an initial build racing a missing download.
 ## Application releases
 
 1. Update `app/Info.plist`, `.github/release.json` and `.github/RELEASE.md`.
-   Get explicit approval of the title, notes and preview/signing policy.
+   Get explicit approval of the title and notes.
 2. Commit and push the reviewed changes to `main`; require the complete CI job
    to pass. Perform relevant manual capture/display checks separately.
 3. Push a version tag matching the plist and release configuration, e.g.
    `v0.11.0`. The tag workflow builds/tests that exact source commit.
 4. The publish job verifies the downloaded artifact, checksums, tag and commit,
-   then creates a **draft prerelease** with the committed notes. It never
+   then creates a **draft release** with the committed notes. It never
    publishes automatically and refuses to replace an existing release.
 5. Inspect the draft and attached ZIP/checksums/metadata. After explicit owner
    confirmation, publish the draft. Never move a published tag or silently
@@ -50,15 +50,28 @@ available. This avoids an initial build racing a missing download.
 
 The built app includes its models. No model pack is needed by end users.
 `SHA256SUMS.txt` and `release-metadata.json` identify the distributed archive,
-source commit, helper, model pack, architecture and signing status.
+source commit, helper, model pack, architecture and signing certificate.
 
 ## Signing
 
-The current pipeline produces **ad-hoc-signed, non-notarized previews**. It uses
-no Apple credentials and makes no Developer ID or Gatekeeper-acceptance claim.
-Do not use an Apple Development certificate as a distribution substitute.
+Releases are signed with one long-lived **self-signed certificate**
+("TextPicker Self-Signed (georgiansarghi)"). It is not trusted by Gatekeeper, so
+users still approve the first launch, but its stable identity lets macOS keep
+Screen Recording and Accessibility grants across updates. Ad-hoc signatures change
+with every build and lose those grants.
 
-Developer ID signing/notarization requires a separate implementation and owner-
-provided credentials. Sign the helper before recording its build identity and
-qualifying it; do not deep-re-sign it after validation. Notarize/staple the final
-distribution and verify the result before replacing the current preview policy.
+- `.github/release.json` pins the certificate's SHA-256 (`certificate_sha256`).
+  CI refuses to stage a release signed with anything else.
+- CI imports it from the `TEXTPICKER_SIGNING_P12` (base64 PKCS#12) and
+  `TEXTPICKER_SIGNING_PASSWORD` repository secrets into a temporary keychain.
+  Builds without the secrets (fork pull requests) fall back to ad-hoc; release
+  tags fail instead.
+- Only the outer app is certificate-signed. The OCR helper keeps the ad-hoc
+  signature it was qualified with; never deep-re-sign it.
+- **Never replace or lose the certificate.** A new certificate is a new identity
+  and every user must grant permissions again. Keep the `.p12` and its password
+  in a password manager.
+
+Moving to Developer ID signing and notarization later is also an identity change
+(one final permission reset). Sign the helper before recording its build identity
+and qualifying it, then notarize and staple the final distribution.

@@ -25,11 +25,20 @@ def release_config(root=ROOT):
     if (not isinstance(configuration['title'], str) or not configuration['title'].strip()
             or any(c in configuration['title'] for c in '\r\n') or len(configuration['title']) > 120):
         raise RuntimeError('Invalid release title')
-    if configuration['prerelease'] is not True or configuration['signing'] != 'ad-hoc':
-        raise RuntimeError('This pipeline currently supports ad-hoc-signed preview releases only')
+    if (configuration['prerelease'] is not False or configuration['signing'] != 'self-signed'
+            or not re.fullmatch(r'[0-9a-f]{64}', str(configuration.get('certificate_sha256')))):
+        raise RuntimeError('Releases must be self-signed with the pinned certificate')
     if not (root / '.github/RELEASE.md').read_text().strip():
         raise RuntimeError('Release notes must be explicitly supplied')
     return configuration, info
+
+
+def signing_certificate(path):
+    """SHA-256 of the leaf signing certificate, or None for an ad-hoc signature."""
+    with tempfile.TemporaryDirectory(prefix='textpicker-certificate-') as folder:
+        run('codesign', '-d', f'--extract-certificates={folder}/certificate', path, capture_output=True)
+        leaf = Path(folder) / 'certificate0'
+        return hashlib.sha256(leaf.read_bytes()).hexdigest() if leaf.exists() else None
 
 
 def inventory(bundle):
@@ -59,7 +68,7 @@ def main():
     if options.check_tag:
         if options.check_tag != config['tag']:
             parser.error('Requested tag does not match the reviewed release configuration')
-        print('PASS: release tag, version, preview policy and explicit notes agree')
+        print('PASS: release tag, version, signing policy and explicit notes agree')
         return
     if subprocess.check_output(['git', 'status', '--porcelain'], cwd=ROOT, text=True).strip():
         raise RuntimeError('Release archives require a clean committed tree')
@@ -73,9 +82,12 @@ def main():
         architecture = subprocess.check_output(['lipo', '-archs', path], text=True).strip()
         if architecture != 'arm64':
             raise RuntimeError('Release requires Apple Silicon executables')
-        signature = run('codesign', '-d', '--verbose=4', path, capture_output=True, text=True).stderr
-        if 'Signature=adhoc' not in signature:
-            raise RuntimeError('Signing policy differs from the approved ad-hoc preview')
+    # The helper keeps its tested ad-hoc identity; only the app is certificate-signed.
+    if signing_certificate(bundle / 'Contents/MacOS/TextPickerNative') is not None:
+        raise RuntimeError('The OCR helper must keep its validated ad-hoc signature')
+    certificate = signing_certificate(bundle)
+    if certificate is not None and certificate != config['certificate_sha256']:
+        raise RuntimeError('App is signed with an unexpected certificate')
     destination = ROOT / '.build/dist'
     destination.mkdir(parents=True, exist_ok=True)
     if list(destination.iterdir()):
@@ -87,7 +99,8 @@ def main():
         'build': info['CFBundleVersion'],
         'commit': subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=ROOT, text=True).strip(),
         'architecture': 'arm64', 'deployment_target': info['LSMinimumSystemVersion'],
-        'signing': 'ad-hoc', 'notarized': False,
+        'signing': 'self-signed' if certificate else 'ad-hoc', 'certificate_sha256': certificate,
+        'notarized': False,
         'model_pack_sha256': json.loads((ROOT / 'native/models/distribution.json').read_text())['archive_sha256'],
         'archive_sha256': hashlib.sha256(archive.read_bytes()).hexdigest(),
         'worker_sha256': hashlib.sha256((bundle / 'Contents/MacOS/TextPickerNative').read_bytes()).hexdigest(),

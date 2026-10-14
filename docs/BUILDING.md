@@ -48,15 +48,20 @@ bash scripts/install.sh
 ```
 
 There is one native-only product. Builds verify model inventories, qualify the
-actual packaged worker, embed its validation record, and ad-hoc sign the finished
+actual packaged worker, embed its validation record, and sign the finished
 bundle. The first build fetches checksum-pinned native source dependencies;
 `OFFLINE=1` rejects missing caches instead of downloading.
 
-The installer verifies its staged copy, retains a dated rollback, and launches
+Local builds are ad-hoc signed unless `TEXTPICKER_SIGN_IDENTITY` names a signing
+identity (and optionally `TEXTPICKER_SIGN_KEYCHAIN` its keychain). Ad-hoc builds
+have a different code identity from releases, so macOS asks for permissions again
+when you switch between a local build and a downloaded release.
+
+The installer verifies its staged copy, keeps the previous app as a single
+rollback in `~/Library/Application Support/TextPicker/Rollback/`, and launches
 `~/Applications/TextPicker.app`. It does not change saved settings, TCC permissions
-or login registration. Ad-hoc updates may require renewed permissions. Public
-releases are currently explicitly marked ad-hoc-signed, non-notarized previews.
-See [Releasing](RELEASING.md) for CI and publication safeguards.
+or login registration. See [Releasing](RELEASING.md) for CI, signing and
+publication.
 
 ## Repository map
 

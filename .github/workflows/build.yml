@@ -34,6 +34,33 @@ jobs:
           cache-dependency-glob: scripts/requirements-dev.txt
       - name: Set up development tools
         run: bash scripts/setup.sh
+      - name: Import the stable signing certificate
+        env:
+          SIGNING_P12: ${{ secrets.TEXTPICKER_SIGNING_P12 }}
+          SIGNING_PASSWORD: ${{ secrets.TEXTPICKER_SIGNING_PASSWORD }}
+          IS_RELEASE_TAG: ${{ startsWith(github.ref, 'refs/tags/v') }}
+        run: |
+          if [ -z "$SIGNING_P12" ]; then
+            if [ "$IS_RELEASE_TAG" = true ]; then
+              echo "Release tags require the TEXTPICKER_SIGNING_P12 secret." >&2
+              exit 1
+            fi
+            echo "No signing secret (for example, a fork pull request); building ad-hoc."
+            exit 0
+          fi
+          KEYCHAIN="$RUNNER_TEMP/textpicker-signing.keychain-db"
+          KEYCHAIN_PASSWORD=$(uuidgen)
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN"
+          printf '%s' "$SIGNING_P12" | base64 --decode > "$RUNNER_TEMP/signing.p12"
+          security import "$RUNNER_TEMP/signing.p12" -k "$KEYCHAIN" -P "$SIGNING_PASSWORD" -T /usr/bin/codesign >/dev/null
+          rm -f "$RUNNER_TEMP/signing.p12"
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN" >/dev/null
+          IDENTITY=$(security find-identity -p codesigning "$KEYCHAIN" | awk '/TextPicker Self-Signed/ { print $2; exit }')
+          test -n "$IDENTITY"
+          echo "TEXTPICKER_SIGN_IDENTITY=$IDENTITY" >> "$GITHUB_ENV"
+          echo "TEXTPICKER_SIGN_KEYCHAIN=$KEYCHAIN" >> "$GITHUB_ENV"
       - name: Cache checksum-pinned model pack
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:

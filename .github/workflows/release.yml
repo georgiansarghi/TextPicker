@@ -14,6 +14,7 @@ concurrency:
 jobs:
   build:
     uses: ./.github/workflows/build.yml
+    secrets: inherit
     permissions:
       contents: read
 
@@ -46,14 +47,16 @@ jobs:
           assert candidate["tag"] == os.environ["RELEASE_TAG"] == config["tag"]
           assert candidate["commit"] == os.environ["RELEASE_COMMIT"]
           assert candidate["architecture"] == "arm64"
-          assert candidate["signing"] == "ad-hoc" and candidate["notarized"] is False
+          assert candidate["signing"] == config["signing"] == "self-signed"
+          assert candidate["certificate_sha256"] == config["certificate_sha256"]
+          assert candidate["notarized"] is False
           expected = {"SHA256SUMS.txt", "release-metadata.json", f'TextPicker-{candidate["version"]}-arm64.zip'}
           assert {p.name for p in Path("artifacts").iterdir()} == expected
           with open(os.environ["GITHUB_ENV"], "a") as output:
               output.write("RELEASE_TITLE=" + config["title"] + "\n")
           PY
           (cd artifacts && sha256sum --check --strict SHA256SUMS.txt)
-      - name: Create a draft, never publish automatically
+      - name: Create a draft release; the owner publishes it
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
@@ -63,5 +66,5 @@ jobs:
             echo "A release already exists for this tag; refusing to replace it." >&2
             exit 1
           fi
-          gh release create "$RELEASE_TAG" --verify-tag --draft --prerelease --latest=false \
+          gh release create "$RELEASE_TAG" --verify-tag --draft \
             --title "$RELEASE_TITLE" --notes-file .github/RELEASE.md artifacts/*

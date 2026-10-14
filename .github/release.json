@@ -1,6 +1,7 @@
 {
   "tag": "v0.11.0",
   "title": "TextPicker 0.11.0",
-  "prerelease": true,
-  "signing": "ad-hoc"
+  "prerelease": false,
+  "signing": "self-signed",
+  "certificate_sha256": "d19f97191eef2d9c2066b3e787766838213a92ea33952adca1a725d8dc1a9cdc"
 }
