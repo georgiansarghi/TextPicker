@@ -55,7 +55,9 @@ exec /usr/bin/codesign "$@"
             result.stdout,
             result.stderr,
         )
-        backups = list((home / "Applications").glob("TextPicker.previous-*.app"))
+        assert not list((home / "Applications").glob("TextPicker.previous-*.app"))
+        rollback = home / "Library/Application Support/TextPicker/Rollback/TextPicker.app"
+        backups = [rollback] if rollback.exists() else []
         if succeeds:
             assert len(backups) == 1 and (backups[0] / "checkpoint-marker").exists()
             assert (target / "Contents/MacOS/TextPicker").is_file()

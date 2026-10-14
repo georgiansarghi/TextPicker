@@ -6,6 +6,7 @@ SOURCE=${1:-"$ROOT/.build/apps/TextPicker.app"}
 TARGET="$HOME/Applications/TextPicker.app"
 ID=io.github.georgiansarghi.TextPicker
 LEGACY_ID=local.textpicker # Releases up to 0.11.
+ROLLBACK="$HOME/Library/Application Support/TextPicker/Rollback/TextPicker.app"
 [ "$(/usr/libexec/PlistBuddy -c 'Print CFBundleIdentifier' "$SOURCE/Contents/Info.plist")" = "$ID" ]
 codesign --verify --deep --strict "$SOURCE"
 "$ROOT/.venv/bin/python" -B "$ROOT/scripts/verify_bundle.py" "$SOURCE" --release
@@ -51,4 +52,12 @@ SWAPPED=1
 codesign --verify --deep --strict "$TARGET"
 open "$TARGET"
 SUCCESS=1
+# Keep one rollback copy outside ~/Applications so Spotlight and Launchpad
+# do not list stale copies of the app.
+if [ -n "$BACKUP" ]; then
+  mkdir -p "$(dirname "$ROLLBACK")"
+  rm -rf "$ROLLBACK"
+  mv "$BACKUP" "$ROLLBACK"
+  BACKUP=$ROLLBACK
+fi
 printf 'Installed: %s\nRollback: %s\n' "$TARGET" "${BACKUP:-none (first install)}"
