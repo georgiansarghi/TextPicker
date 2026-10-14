@@ -79,10 +79,6 @@ Choose **Check for Updates…** in the TextPicker menu to open the latest releas
 then replace the app in Applications. Releases are signed with the same
 certificate, so macOS keeps your permissions when you update.
 
-> **Upgrading from 0.11?** That version had a different identity. Remove the old
-> **TextPicker** entries under Screen Recording and Accessibility in System
-> Settings, then grant access again. Your settings carry over.
-
 ## Troubleshooting
 
 - **The shortcut does nothing.** Check that both permissions are on in the

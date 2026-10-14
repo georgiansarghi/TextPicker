@@ -14,9 +14,4 @@ TextPicker isn't notarized by Apple yet, which is why macOS asks. See the [READM
 
 - **Permissions now survive updates.** Releases are signed with a stable certificate, so future updates no longer ask for Screen Recording and Accessibility again.
 - **About TextPicker** and **Check for Updates…** in the menu. Checking opens this page in your browser; TextPicker still makes no network connections.
-- New app identifier: `io.github.georgiansarghi.TextPicker`.
 - TextPicker is now MIT-licensed.
-
-### Upgrading from 0.11
-
-Because the app's identity changed, macOS asks for permissions one more time. Remove the old **TextPicker** entries under Screen Recording and Accessibility in System Settings, then grant access again. Your settings carry over. If you use **Launch at Login**, check that it is still on.
