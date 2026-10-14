@@ -21,5 +21,6 @@ The adjacent license files are copied into `Contents/Resources/Licenses/`.
 ImageIO, CoreGraphics, Accelerate, AppKit and ScreenCaptureKit are macOS system
 frameworks. Python, NumPy and Pillow are development/test tools only.
 
-The app is locally ad-hoc signed, not notarized. This inventory is not a substitute
-for a redistribution, model-license or signing review.
+TextPicker's own source is MIT-licensed (see `LICENSE` in the repository).
+Releases are signed with a self-signed certificate and are not notarized. This
+inventory is not a substitute for a redistribution, model-license or signing review.
