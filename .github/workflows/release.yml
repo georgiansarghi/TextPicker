@@ -50,7 +50,7 @@ jobs:
           assert candidate["signing"] == config["signing"] == "self-signed"
           assert candidate["certificate_sha256"] == config["certificate_sha256"]
           assert candidate["notarized"] is False
-          expected = {"SHA256SUMS.txt", "release-metadata.json", f'TextPicker-{candidate["version"]}-arm64.zip'}
+          expected = {"SHA256SUMS.txt", "release-metadata.json", "TextPicker-arm64.zip"}
           assert {p.name for p in Path("artifacts").iterdir()} == expected
           with open(os.environ["GITHUB_ENV"], "a") as output:
               output.write("RELEASE_TITLE=" + config["title"] + "\n")

@@ -49,6 +49,8 @@ available. This avoids an initial build racing a missing download.
    replace a released binary.
 
 The built app includes its models. No model pack is needed by end users.
+The download is always named `TextPicker-arm64.zip`, so
+`releases/latest/download/TextPicker-arm64.zip` links to the newest version.
 `SHA256SUMS.txt` and `release-metadata.json` identify the distributed archive,
 source commit, helper, model pack, architecture and signing certificate.
 

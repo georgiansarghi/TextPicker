@@ -92,7 +92,8 @@ def main():
     destination.mkdir(parents=True, exist_ok=True)
     if list(destination.iterdir()):
         raise RuntimeError('Release output directory must be empty')
-    archive = destination / f'TextPicker-{info["CFBundleShortVersionString"]}-arm64.zip'
+    # A fixed name keeps releases/latest/download/TextPicker-arm64.zip stable.
+    archive = destination / 'TextPicker-arm64.zip'
     make_archive(bundle, archive)
     metadata = {
         'tag': config['tag'], 'version': info['CFBundleShortVersionString'],
