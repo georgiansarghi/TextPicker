@@ -251,6 +251,8 @@ final class CaptureMenu: NSObject {
         var showCaptureFeedback: (Bool) -> Void = { _ in }
         var login: (Bool) -> Void = { _ in }
         var loginSettings: () -> Void = {}
+        var about: () -> Void = {}
+        var checkForUpdates: () -> Void = {}
     }
     let menu = NSMenu()
     let capture = NSMenuItem(title: "Capture Text", action: nil, keyEquivalent: "")
@@ -302,6 +304,8 @@ final class CaptureMenu: NSObject {
         permissionHint.isHidden = true
         menu.addItem(permissionHint)
         menu.addItem(.separator())
+        add(NSMenuItem(title: "About TextPicker", action: nil, keyEquivalent: ""), #selector(aboutAction))
+        add(NSMenuItem(title: "Check for Updates…", action: nil, keyEquivalent: ""), #selector(updatesAction))
         let quit = NSMenuItem(title: "Quit TextPicker", action: nil, keyEquivalent: "q")
         quit.keyEquivalentModifierMask = .command
         add(quit, #selector(quitAction))
@@ -404,5 +408,7 @@ final class CaptureMenu: NSObject {
     @objc private func recordAction() { shortcut.record() }
     @objc private func toggleAction(_ item: NSMenuItem) { (item.view as? MenuToggleRow)?.activate() }
     @objc private func loginSettingsAction() { actions.loginSettings() }
+    @objc private func aboutAction() { actions.about() }
+    @objc private func updatesAction() { actions.checkForUpdates() }
     @objc private func quitAction() { actions.quit() }
 }

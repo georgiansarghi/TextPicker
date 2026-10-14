@@ -24,6 +24,8 @@ struct DisplayLayoutEntry: Equatable {
     }
 }
 
+let releasesURL = URL(string: "https://github.com/georgiansarghi/TextPicker/releases/latest")!
+
 /// Releases up to 0.11 used the placeholder identifier `local.textpicker`.
 /// Copy those settings once so the identifier change keeps user choices.
 func migrateLegacySettings(to identifier: String, from legacy: String = "local.textpicker",

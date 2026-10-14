@@ -175,7 +175,7 @@ struct MenuTests {
 
         var lines = true, sound = false
         var lineCalls = 0, soundCalls = 0, recordings = 0, resets = 0
-        var captures = 0, retries = 0, permissions = 0, quits = 0
+        var captures = 0, retries = 0, permissions = 0, quits = 0, abouts = 0, updates = 0
         var additiveSetting = false, feedbackSetting = true, loginRequests: [Bool] = [], loginSettingsCalls = 0
         let controls = CaptureMenu(actions: .init(
             capture: { captures += 1 }, retry: { retries += 1 },
@@ -184,7 +184,8 @@ struct MenuTests {
             record: { recordings += 1 }, resetShortcut: { resets += 1 },
             quit: { quits += 1 },
             additiveClipboard: { additiveSetting = $0 }, showCaptureFeedback: { feedbackSetting = $0 },
-            login: { loginRequests.append($0) }, loginSettings: { loginSettingsCalls += 1 }))
+            login: { loginRequests.append($0) }, loginSettings: { loginSettingsCalls += 1 },
+            about: { abouts += 1 }, checkForUpdates: { updates += 1 }))
         let linesItem = controls.menu.items.first { $0.view === controls.lines }!
         func update(ready: Bool = true, capturing: Bool = false, failed: Bool = false, access: Bool = true) {
             controls.update(ready: ready, capturing: capturing, failed: failed,
@@ -279,17 +280,17 @@ struct MenuTests {
         check(!controls.capture.isEnabled)
         check(controls.menu.items.filter { $0.view is PermissionMenuRow && !$0.isHidden }.count == 2)
         update()
-        for title in ["Capture Text", "Retry OCR Engine", "Quit TextPicker"] {
+        for title in ["Capture Text", "Retry OCR Engine", "About TextPicker", "Check for Updates…", "Quit TextPicker"] {
             let item = controls.menu.items.first { $0.title == title }!
             check(NSApp.sendAction(item.action!, to: item.target, from: item))
         }
-        check(captures == 1 && retries == 1 && permissions == 0 && quits == 1)
+        check(captures == 1 && retries == 1 && permissions == 0 && quits == 1 && abouts == 1 && updates == 1)
         check(controls.highlight(nil).isEmpty && !controls.shortcut.highlighted && !controls.lines.highlighted)
 
         check(controls.menu.items.allSatisfy { $0.title != "Diagnostics…" })
-        check(controls.menu.items.last?.title == "Quit TextPicker")
-        check(controls.menu.items.dropLast().last?.isSeparatorItem == true,
-              "the final section contains only Quit")
+        check(controls.menu.items.suffix(4).map(\.title) == ["", "About TextPicker", "Check for Updates…", "Quit TextPicker"],
+              "the final section contains About, updates and Quit")
+        check(controls.menu.items.suffix(4).first?.isSeparatorItem == true)
 
         check(!controls.additive.value && controls.feedback.value && !controls.login.value && controls.loginHelp.isHidden)
         controls.additive.activate()

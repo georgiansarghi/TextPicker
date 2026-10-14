@@ -155,7 +155,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
                 self.loginItem.setRequested(value)
                 self.refreshMenu()
             },
-            loginSettings: { [weak self] in self?.loginItem.openSettings() }))
+            loginSettings: { [weak self] in self?.loginItem.openSettings() },
+            about: {
+                NSApp.activate(ignoringOtherApps: true)
+                NSApp.orderFrontStandardAboutPanel(nil)
+            },
+            // Opens the browser; TextPicker itself never connects to the network.
+            checkForUpdates: { NSWorkspace.shared.open(releasesURL) }))
         controls.menu.delegate = self
         statusItem.menu = controls.menu
         input.captureShortcut = shortcut
