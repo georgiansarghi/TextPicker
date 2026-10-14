@@ -24,6 +24,15 @@ struct DisplayLayoutEntry: Equatable {
     }
 }
 
+/// Releases up to 0.11 used the placeholder identifier `local.textpicker`.
+/// Copy those settings once so the identifier change keeps user choices.
+func migrateLegacySettings(to identifier: String, from legacy: String = "local.textpicker",
+                           defaults: UserDefaults = .standard) {
+    guard identifier != legacy, defaults.persistentDomain(forName: identifier)?.isEmpty ?? true,
+          let settings = defaults.persistentDomain(forName: legacy), !settings.isEmpty else { return }
+    defaults.setPersistentDomain(settings, forName: identifier)
+}
+
 func appError(_ message: String) -> NSError {
     NSError(domain: "TextPicker", code: 1, userInfo: [NSLocalizedDescriptionKey: message])
 }

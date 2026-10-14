@@ -27,13 +27,14 @@ exec /usr/bin/codesign "$@"
         path = commands / name
         path.write_text("#!/bin/bash\nset -eu\n" + script)
         path.chmod(0o700)
-    for failure in ["copy", "staged", "postverify", "launch", "success"]:
+    for failure in ["copy", "staged", "postverify", "launch", "success", "legacy"]:
         home = temporary / (failure + " home")
         target = home / "Applications/TextPicker.app"
         (target / "Contents").mkdir(parents=True)
-        (target / "Contents/Info.plist").write_bytes(
-            (SOURCE / "Contents/Info.plist").read_bytes()
-        )
+        info = (SOURCE / "Contents/Info.plist").read_bytes()
+        if failure == "legacy":  # Upgrading a 0.11 install with the old identifier.
+            info = info.replace(b"io.github.georgiansarghi.TextPicker", b"local.textpicker")
+        (target / "Contents/Info.plist").write_bytes(info)
         (target / "checkpoint-marker").write_text("old installation")
         environment = dict(
             os.environ,
@@ -48,13 +49,14 @@ exec /usr/bin/codesign "$@"
             text=True,
             timeout=60,
         )
-        assert (result.returncode == 0) == (failure == "success"), (
+        succeeds = failure in ("success", "legacy")
+        assert (result.returncode == 0) == succeeds, (
             failure,
             result.stdout,
             result.stderr,
         )
         backups = list((home / "Applications").glob("TextPicker.previous-*.app"))
-        if failure == "success":
+        if succeeds:
             assert len(backups) == 1 and (backups[0] / "checkpoint-marker").exists()
             assert (target / "Contents/MacOS/TextPicker").is_file()
             assert (target / "Contents/MacOS/TextPickerNative").is_file()
@@ -67,5 +69,5 @@ exec /usr/bin/codesign "$@"
 
         shutil.rmtree(home)
 print(
-    "PASS: 5 isolated install transactions (copy, staged/post-swap verification, launch failure, success)"
+    "PASS: 6 isolated install transactions (copy, staged/post-swap verification, launch failure, success, legacy upgrade)"
 )

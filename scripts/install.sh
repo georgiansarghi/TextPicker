@@ -4,7 +4,8 @@ set -euo pipefail
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 SOURCE=${1:-"$ROOT/.build/apps/TextPicker.app"}
 TARGET="$HOME/Applications/TextPicker.app"
-ID=local.textpicker
+ID=io.github.georgiansarghi.TextPicker
+LEGACY_ID=local.textpicker # Releases up to 0.11.
 [ "$(/usr/libexec/PlistBuddy -c 'Print CFBundleIdentifier' "$SOURCE/Contents/Info.plist")" = "$ID" ]
 codesign --verify --deep --strict "$SOURCE"
 "$ROOT/.venv/bin/python" -B "$ROOT/scripts/verify_bundle.py" "$SOURCE" --release
@@ -12,7 +13,8 @@ if pgrep -x TextPicker >/dev/null; then echo 'Quit TextPicker before installing.
 mkdir -p "$HOME/Applications"
 [ ! -L "$TARGET" ] || { echo 'Refusing a symlink installation target' >&2; exit 1; }
 if [ -e "$TARGET" ]; then
-  [ "$(/usr/libexec/PlistBuddy -c 'Print CFBundleIdentifier' "$TARGET/Contents/Info.plist")" = "$ID" ]
+  INSTALLED=$(/usr/libexec/PlistBuddy -c 'Print CFBundleIdentifier' "$TARGET/Contents/Info.plist")
+  [ "$INSTALLED" = "$ID" ] || [ "$INSTALLED" = "$LEGACY_ID" ]
 fi
 STAGE=$(mktemp -d "$HOME/Applications/.textpicker-install.XXXXXX")
 BACKUP=

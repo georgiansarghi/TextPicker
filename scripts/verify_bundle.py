@@ -21,7 +21,7 @@ def verify_bundle(bundle, evidence=True):
         if path.is_symlink():
             raise RuntimeError(f'Symlink in native bundle: {path}')
     info = plistlib.loads((bundle / 'Contents/Info.plist').read_bytes())
-    identity = {'CFBundleIdentifier': 'local.textpicker', 'CFBundleName': 'TextPicker',
+    identity = {'CFBundleIdentifier': 'io.github.georgiansarghi.TextPicker', 'CFBundleName': 'TextPicker',
                 'CFBundleDisplayName': 'TextPicker', 'CFBundleExecutable': 'TextPicker',
                 'CFBundleIconFile': 'TextPicker'}
     if any(info.get(key) != value for key, value in identity.items()):
