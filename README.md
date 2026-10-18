@@ -17,6 +17,8 @@ menu bar app for Apple Silicon Macs. OCR runs entirely on your Mac.
 
 Press **⌘⇧2** and drag over text to copy it.
 
+<img src="docs/media/menu.webp" alt="TextPicker's dark-mode menu with capture settings and permission status" width="362">
+
 ## Build from source
 
 Requires Xcode, CMake and [`uv`](https://docs.astral.sh/uv/).
