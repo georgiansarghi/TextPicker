@@ -79,11 +79,11 @@ struct PermissionMenuTests {
         let window = PermissionsWindowController(model: model, onRefresh: { _ in redraw() }, onQuit: {})
         func descendants(_ view: NSView) -> [NSView] { [view] + view.subviews.flatMap(descendants) }
         let buttons = descendants(window.window!.contentView!).compactMap { $0 as? NSButton }
-        let screenGrant = buttons.first { $0.title == "Requested" && $0.tag == 0 }!
-        check(!screenGrant.isEnabled && !window.window!.isVisible)
+        let screenGrant = buttons.first { $0.title == "Open Settings…" && $0.tag == 0 }!
+        check(screenGrant.isEnabled && !window.window!.isVisible)
         screenGrant.performClick(nil)
-        check(requests == [.screenRecording])
-        buttons.first { $0.title == "Grant Access" && $0.tag == 1 }!.performClick(nil)
+        check(requests == [.screenRecording] && opened.last == CapturePermission.screenRecording.settingsURL)
+        buttons.first { $0.title == "Allow" && $0.tag == 1 }!.performClick(nil)
         check(requests == [.screenRecording, .accessibility])
         check(accessibility.state == .requested && accessibility.button.title == "Open Settings…")
         let openCount = opened.count

@@ -15,9 +15,21 @@ enum CapturePermission: CaseIterable {
     var detail: String {
         switch self {
         case .screenRecording:
-            return "Reads the region you select for local text recognition. TextPicker does not record audio or upload your captures."
+            return "Reads only the area you select. Nothing leaves your Mac."
         case .accessibility:
-            return "Enables the capture shortcut and region selection without dismissing open menus. TextPicker does not record your keystrokes."
+            return "Runs the shortcut and keeps menus open while you select."
+        }
+    }
+    var symbol: String {
+        switch self {
+        case .screenRecording: return "rectangle.dashed"
+        case .accessibility: return "accessibility"
+        }
+    }
+    var tint: NSColor {
+        switch self {
+        case .screenRecording: return .systemBlue
+        case .accessibility: return .systemIndigo
         }
     }
     var settingsURL: URL {
@@ -71,11 +83,9 @@ struct CaptureAccess: Equatable {
         return nil
     }
     var guidance: String {
-        if ready { return "Permissions are ready. Close this window, then use Capture Text or your shortcut." }
-        if screenRecording && accessibility && !inputReady {
-            return "Permissions have been granted, but capture input is not ready. Quit and reopen TextPicker."
-        }
-        return "Enable the required permissions, then return here. If the switches are already on, quit and reopen TextPicker. After an app update, macOS may need you to toggle or re-add TextPicker."
+        if ready { return "You're all set." }
+        if screenRecording && accessibility && !inputReady { return "Almost there. Quit and reopen TextPicker." }
+        return "Already on in System Settings? Quit and reopen TextPicker."
     }
 }
 
@@ -177,80 +187,84 @@ final class PermissionRefreshMonitor {
 }
 
 @MainActor
-private final class PermissionRow: NSBox {
-    let status = NSTextField(labelWithString: "")
-    let grant: NSButton
-    let settings: NSButton
+private final class PermissionRow: NSView {
+    let status = NSStackView()
+    private let statusLabel = NSTextField(labelWithString: "Granted")
+    let button: NSButton
+    private(set) var state = PermissionMenuState.notGranted
     private let permission: CapturePermission
 
-    init(_ permission: CapturePermission, target: AnyObject, grantAction: Selector, settingsAction: Selector) {
+    init(_ permission: CapturePermission, target: AnyObject, action: Selector) {
         self.permission = permission
-        grant = NSButton(title: "Grant Access", target: target, action: grantAction)
-        settings = NSButton(title: "Open Settings…", target: target, action: settingsAction)
+        button = NSButton(title: PermissionMenuState.notGranted.buttonTitle, target: target, action: action)
         super.init(frame: .zero)
-        boxType = .custom
-        borderWidth = 1
-        borderColor = .separatorColor
-        fillColor = .controlBackgroundColor
-        cornerRadius = 10
-        contentViewMargins = .zero
+        let tile = NSBox()
+        tile.boxType = .custom
+        tile.borderWidth = 0
+        tile.fillColor = permission.tint
+        tile.cornerRadius = 7
+        tile.contentViewMargins = .zero
+        let symbol = NSImageView(image: NSImage(systemSymbolName: permission.symbol, accessibilityDescription: nil)!)
+        symbol.symbolConfiguration = .init(pointSize: 14, weight: .semibold)
+        symbol.contentTintColor = .white
+        symbol.translatesAutoresizingMaskIntoConstraints = false
+        tile.contentView!.addSubview(symbol)
         let title = NSTextField(labelWithString: permission.title)
-        title.font = .systemFont(ofSize: 14, weight: .semibold)
-        let requirement = NSTextField(labelWithString: "Required")
-        requirement.font = .systemFont(ofSize: 11)
-        requirement.textColor = .secondaryLabelColor
-        let heading = NSStackView(views: [title, requirement])
-        heading.spacing = 8
-        let detail = NSTextField(wrappingLabelWithString: permission.detail)
-        detail.font = .systemFont(ofSize: 12)
+        title.font = .systemFont(ofSize: 13, weight: .semibold)
+        let detail = NSTextField(labelWithString: permission.detail)
+        detail.font = .systemFont(ofSize: 11)
         detail.textColor = .secondaryLabelColor
-        detail.preferredMaxLayoutWidth = 370
-        let copy = NSStackView(views: [heading, detail])
+        let copy = NSStackView(views: [title, detail])
         copy.orientation = .vertical
         copy.alignment = .leading
-        copy.spacing = 6
-        let buttons = NSStackView(views: [grant, settings])
-        buttons.spacing = 6
-        for button in [grant, settings] {
-            button.bezelStyle = .rounded
-            button.controlSize = .small
-            button.tag = CapturePermission.allCases.firstIndex(of: permission)!
-        }
-        grant.setAccessibilityLabel("Grant \(permission.title) access")
-        settings.setAccessibilityLabel("Open \(permission.title) settings")
-        status.font = .systemFont(ofSize: 12, weight: .medium)
-        status.alignment = .right
-        let controls = NSStackView(views: [status, buttons])
-        controls.orientation = .vertical
-        controls.alignment = .trailing
-        controls.spacing = 10
-        let content = contentView!
-        for view in [copy, controls] {
+        copy.spacing = 2
+        button.bezelStyle = .rounded
+        button.tag = CapturePermission.allCases.firstIndex(of: permission)!
+        let check = NSImageView(image: NSImage(systemSymbolName: "checkmark.circle.fill", accessibilityDescription: nil)!)
+        check.contentTintColor = .systemGreen
+        statusLabel.font = .systemFont(ofSize: 12, weight: .medium)
+        statusLabel.textColor = .systemGreen
+        status.setViews([check, statusLabel], in: .leading)
+        status.spacing = 4
+        // Fixed-width trailing slot sized for the widest title, so Allow →
+        // Open Settings… → Granted never changes the row or window width.
+        button.title = "Open Settings…"
+        let slotWidth = button.intrinsicContentSize.width
+        button.title = PermissionMenuState.notGranted.buttonTitle
+        let slot = NSView()
+        for view in [status, button] {
             view.translatesAutoresizingMaskIntoConstraints = false
-            content.addSubview(view)
+            slot.addSubview(view)
         }
+        let row = NSStackView(views: [tile, copy, NSView(), slot])
+        row.spacing = 12
+        row.translatesAutoresizingMaskIntoConstraints = false
+        addSubview(row)
         NSLayoutConstraint.activate([
-            copy.leadingAnchor.constraint(equalTo: content.leadingAnchor, constant: 14),
-            copy.topAnchor.constraint(equalTo: content.topAnchor, constant: 14),
-            copy.bottomAnchor.constraint(lessThanOrEqualTo: content.bottomAnchor, constant: -14),
-            copy.widthAnchor.constraint(equalToConstant: 370),
-            controls.leadingAnchor.constraint(greaterThanOrEqualTo: copy.trailingAnchor, constant: 10),
-            controls.trailingAnchor.constraint(equalTo: content.trailingAnchor, constant: -14),
-            controls.centerYAnchor.constraint(equalTo: content.centerYAnchor),
-            heightAnchor.constraint(equalToConstant: 108),
+            slot.widthAnchor.constraint(equalToConstant: slotWidth),
+            slot.heightAnchor.constraint(equalTo: button.heightAnchor),
+            button.trailingAnchor.constraint(equalTo: slot.trailingAnchor),
+            button.centerYAnchor.constraint(equalTo: slot.centerYAnchor),
+            status.trailingAnchor.constraint(equalTo: slot.trailingAnchor),
+            status.centerYAnchor.constraint(equalTo: slot.centerYAnchor),
+            tile.widthAnchor.constraint(equalToConstant: 30), tile.heightAnchor.constraint(equalToConstant: 30),
+            symbol.centerXAnchor.constraint(equalTo: tile.centerXAnchor),
+            symbol.centerYAnchor.constraint(equalTo: tile.centerYAnchor),
+            row.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 14),
+            row.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -14),
+            row.centerYAnchor.constraint(equalTo: centerYAnchor),
+            heightAnchor.constraint(equalToConstant: 58),
         ])
     }
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
 
     func update(_ model: PermissionStatus) {
-        let access = model.access
-        status.stringValue = (access.granted(permission) ? "✓ " : "") + access.status(permission)
-        status.textColor = access.granted(permission) ? .systemGreen : .systemOrange
-        status.setAccessibilityLabel("\(permission.title): \(access.status(permission))")
-        grant.isHidden = access.granted(permission)
-        grant.isEnabled = !model.requested.contains(permission)
-        grant.title = model.requested.contains(permission) ? "Requested" : "Grant Access"
-        settings.isHidden = access.granted(permission)
+        state = model.access.menuState(permission, requested: model.requested)
+        status.isHidden = state != .granted
+        status.setAccessibilityLabel("\(permission.title): \(model.access.status(permission))")
+        button.isHidden = state == .granted
+        button.title = state == .notGranted ? "Allow" : "Open Settings…"
+        button.setAccessibilityLabel(state == .notGranted ? "Allow \(permission.title)" : "Open \(permission.title) settings")
     }
 }
 
@@ -261,7 +275,7 @@ final class PermissionsWindowController: NSWindowController, NSWindowDelegate {
     private let onQuit: () -> Void
     private var rows: [PermissionRow] = []
     private var constructedWindow = false
-    private let guidance = NSTextField(wrappingLabelWithString: "")
+    private let guidance = NSTextField(labelWithString: "")
     private let dismissButton = NSButton(title: "Later", target: nil, action: nil)
     private lazy var refreshMonitor = PermissionRefreshMonitor { [weak self] in self?.refresh() }
     var monitoring: Bool { refreshMonitor.isRunning }
@@ -278,9 +292,12 @@ final class PermissionsWindowController: NSWindowController, NSWindowDelegate {
     override func loadWindow() {
         guard !constructedWindow else { return }
         constructedWindow = true
-        let window = NSWindow(contentRect: CGRect(x: 0, y: 0, width: 720, height: 470),
-                              styleMask: [.titled, .closable, .miniaturizable], backing: .buffered, defer: false)
+        let window = NSWindow(contentRect: CGRect(x: 0, y: 0, width: 500, height: 300),
+                              styleMask: [.titled, .closable, .miniaturizable, .fullSizeContentView],
+                              backing: .buffered, defer: false)
         window.title = "TextPicker Permissions"
+        window.titleVisibility = .hidden
+        window.titlebarAppearsTransparent = true
         window.isReleasedWhenClosed = false
         window.delegate = self
         window.collectionBehavior = [.moveToActiveSpace, .fullScreenAuxiliary]
@@ -292,49 +309,70 @@ final class PermissionsWindowController: NSWindowController, NSWindowDelegate {
         background.contentViewMargins = .zero
         window.contentView = background
         let body = background.contentView!
+        let icon = NSImageView(image: NSApp.applicationIconImage)
+        icon.widthAnchor.constraint(equalToConstant: 52).isActive = true
+        icon.heightAnchor.constraint(equalToConstant: 52).isActive = true
         let title = NSTextField(labelWithString: "Set up TextPicker")
-        title.font = .systemFont(ofSize: 22, weight: .semibold)
-        let subtitle = NSTextField(wrappingLabelWithString: "Grant access below to capture text. Checks update automatically when you return from System Settings.")
+        title.font = .systemFont(ofSize: 20, weight: .semibold)
+        let subtitle = NSTextField(labelWithString: "Allow two permissions to start capturing text.")
         subtitle.font = .systemFont(ofSize: 13)
         subtitle.textColor = .secondaryLabelColor
-        subtitle.preferredMaxLayoutWidth = 670
-        rows = CapturePermission.allCases.map { PermissionRow($0, target: self, grantAction: #selector(grant(_:)), settingsAction: #selector(settings(_:))) }
-        guidance.font = .systemFont(ofSize: 12)
+        let heading = NSStackView(views: [title, subtitle])
+        heading.orientation = .vertical
+        heading.alignment = .leading
+        heading.spacing = 2
+        let header = NSStackView(views: [icon, heading])
+        header.spacing = 14
+        rows = CapturePermission.allCases.map { PermissionRow($0, target: self, action: #selector(rowAction(_:))) }
+        let card = NSBox()
+        card.boxType = .custom
+        card.borderWidth = 1
+        card.borderColor = .separatorColor
+        card.fillColor = .controlBackgroundColor
+        card.cornerRadius = 10
+        card.contentViewMargins = .zero
+        let divider = NSBox()
+        divider.boxType = .separator
+        let list = NSStackView(views: [rows[0], divider, rows[1]])
+        list.orientation = .vertical
+        list.spacing = 0
+        list.translatesAutoresizingMaskIntoConstraints = false
+        card.contentView!.addSubview(list)
+        guidance.font = .systemFont(ofSize: 11)
+        guidance.lineBreakMode = .byTruncatingTail
         guidance.textColor = .secondaryLabelColor
-        guidance.preferredMaxLayoutWidth = 670
-        guidance.heightAnchor.constraint(equalToConstant: 48).isActive = true
         let quitButton = NSButton(title: "Quit TextPicker", target: self, action: #selector(quit))
-        let refresh = NSButton(title: "Check Again", target: self, action: #selector(checkAgain))
         dismissButton.target = self
         dismissButton.action = #selector(dismissWindow)
         dismissButton.keyEquivalent = "\r"
-        let spacer = NSView()
-        let buttons = NSStackView(views: [quitButton, spacer, refresh, dismissButton])
-        buttons.spacing = 10
-        for button in [quitButton, refresh, dismissButton] {
-            button.bezelStyle = .rounded
-            button.controlSize = .small
-        }
-        let content = NSStackView(views: [title, subtitle] + rows + [guidance, buttons])
+        for button in [quitButton, dismissButton] { button.bezelStyle = .rounded }
+        let buttons = NSStackView(views: [quitButton, NSView(), dismissButton])
+        buttons.spacing = 12
+        let content = NSStackView(views: [header, card, guidance, buttons])
         content.orientation = .vertical
         content.alignment = .leading
-        content.spacing = 12
+        content.spacing = 18
+        content.setCustomSpacing(22, after: header)
+        content.setCustomSpacing(8, after: card)
         content.translatesAutoresizingMaskIntoConstraints = false
         body.addSubview(content)
         NSLayoutConstraint.activate([
+            list.leadingAnchor.constraint(equalTo: card.contentView!.leadingAnchor),
+            list.trailingAnchor.constraint(equalTo: card.contentView!.trailingAnchor),
+            list.topAnchor.constraint(equalTo: card.contentView!.topAnchor),
+            list.bottomAnchor.constraint(equalTo: card.contentView!.bottomAnchor),
+            divider.widthAnchor.constraint(equalTo: list.widthAnchor, constant: -28),
             content.leadingAnchor.constraint(equalTo: body.leadingAnchor, constant: 24),
             content.trailingAnchor.constraint(equalTo: body.trailingAnchor, constant: -24),
-            content.topAnchor.constraint(equalTo: body.topAnchor, constant: 22),
-            content.bottomAnchor.constraint(lessThanOrEqualTo: body.bottomAnchor, constant: -20),
+            content.topAnchor.constraint(equalTo: body.topAnchor, constant: 40),
+            content.bottomAnchor.constraint(equalTo: body.bottomAnchor, constant: -20),
+            card.widthAnchor.constraint(equalTo: content.widthAnchor),
             buttons.widthAnchor.constraint(equalTo: content.widthAnchor),
-            guidance.widthAnchor.constraint(equalTo: content.widthAnchor),
-            subtitle.widthAnchor.constraint(equalTo: content.widthAnchor),
-        ] + rows.map { $0.widthAnchor.constraint(equalTo: content.widthAnchor) })
+        ] + rows.map { $0.widthAnchor.constraint(equalTo: list.widthAnchor) })
         self.window = window
         render()
         window.center()
     }
-
     func present() {
         // Repeated menu actions reuse the same window and observers.
         refresh()
@@ -356,17 +394,14 @@ final class PermissionsWindowController: NSWindowController, NSWindowDelegate {
         guard isWindowLoaded else { return }
         rows.forEach { $0.update(model) }
         guidance.stringValue = model.settingsError ?? model.access.guidance
+        guidance.toolTip = guidance.stringValue
         dismissButton.title = model.access.ready ? "Done" : "Later"
     }
-    @objc private func grant(_ sender: NSButton) {
-        model.request(CapturePermission.allCases[sender.tag])
+    @objc private func rowAction(_ sender: NSButton) {
+        // Act on the state the button showed, as the menu rows do.
+        model.perform(rows[sender.tag].state.action, for: CapturePermission.allCases[sender.tag])
         refresh()
     }
-    @objc private func settings(_ sender: NSButton) {
-        model.openSettings(CapturePermission.allCases[sender.tag])
-        render()
-    }
-    @objc private func checkAgain() { refresh() }
     @objc private func dismissWindow() { close() }
     @objc private func quit() { onQuit() }
     override func close() { stopMonitoring(); super.close() }

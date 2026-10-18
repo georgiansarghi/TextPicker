@@ -43,7 +43,7 @@ struct PermissionTests {
         check(!model.access.ready) // A permission bit is not a working input tap.
         access.screenRecording = true
         model.refresh()
-        check(!model.access.ready && model.access.guidance.contains("capture input is not ready"))
+        check(!model.access.ready && model.access.guidance.contains("Quit and reopen"))
         access.inputReady = true
         model.refresh()
         check(model.access.ready)
@@ -77,7 +77,10 @@ struct PermissionTests {
         func buttons() -> [NSButton] { descendants(content).compactMap { $0 as? NSButton } }
         check(CapturePermission.allCases.allSatisfy { labels().contains($0.title) })
         check(CapturePermission.allCases.count == 2 && !labels().contains("Input Monitoring"))
-        check(buttons().filter { $0.title == "Grant Access" && !$0.isHidden }.count == 2)
+        func grantedRows() -> Int {
+            descendants(content).filter { !$0.isHidden && $0.accessibilityLabel()?.hasSuffix(": Granted") == true }.count
+        }
+        check(buttons().filter { $0.title == "Allow" && !$0.isHidden }.count == 2 && grantedRows() == 0)
         check(buttons().contains { $0.title == "Later" })
         content.layoutSubtreeIfNeeded()
         if CommandLine.arguments.count == 2 {
@@ -85,15 +88,21 @@ struct PermissionTests {
             content.cacheDisplay(in: content.bounds, to: bitmap)
             try bitmap.representation(using: .png, properties: [:])!.write(to: URL(fileURLWithPath: CommandLine.arguments[1]))
         }
-        let screenGrant = buttons().first { $0.title == "Grant Access" && $0.tag == 0 }!
+        // One button per row: Allow requests once, then becomes Open Settings….
+        let screenGrant = buttons().first { $0.title == "Allow" && $0.tag == 0 }!
+        func contentWidth() -> CGFloat { content.layoutSubtreeIfNeeded(); return content.fittingSize.width }
+        let initialWidth = contentWidth()
         let originalRequests = requests.count
         screenGrant.performClick(nil)
         check(requests.count == originalRequests + 1 && requests.last == .screenRecording)
-        check(!screenGrant.isEnabled && screenGrant.title == "Requested")
-        screenGrant.performClick(nil)
-        check(requests.count == originalRequests + 1)
+        check(screenGrant.isEnabled && screenGrant.title == "Open Settings…")
+        let accessibilityGrant = buttons().first { $0.title == "Allow" && $0.tag == 1 }!
+        accessibilityGrant.performClick(nil)
+        check(requests.count == originalRequests + 2 && accessibilityGrant.title == "Open Settings…")
+        check(contentWidth() == initialWidth) // Button title changes must not resize the window.
         let originalOpens = opened.count
-        buttons().first { $0.title == "Open Settings…" && $0.tag == 1 }!.performClick(nil)
+        accessibilityGrant.performClick(nil)
+        check(requests.count == originalRequests + 2)
         check(opened.count == originalOpens + 1 && opened.last?.absoluteString.hasSuffix("Privacy_Accessibility") == true)
         check(labels().contains { $0.contains("Open System Settings") })
         let beforeRequests = requests.count
@@ -103,9 +112,9 @@ struct PermissionTests {
         check(controller.monitoring)
         access = CaptureAccess(screenRecording: true, accessibility: true, inputReady: true)
         NotificationCenter.default.post(name: NSApplication.didBecomeActiveNotification, object: NSApp)
-        check(refreshes == initialRefreshes + 1 && labels().filter { $0 == "✓ Granted" }.count == 2)
+        check(refreshes == initialRefreshes + 1 && grantedRows() == 2 && contentWidth() == initialWidth)
         check(buttons().contains { $0.title == "Done" })
-        check(buttons().allSatisfy { $0.title != "Grant Access" || $0.isHidden })
+        check(buttons().allSatisfy { $0.tag > 1 || !["Allow", "Open Settings…"].contains($0.title) || $0.isHidden })
         check(requests.count == beforeRequests)
         RunLoop.main.run(until: Date().addingTimeInterval(1.15))
         check(refreshes >= initialRefreshes + 2)
