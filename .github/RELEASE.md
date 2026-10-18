@@ -10,8 +10,8 @@ Select any part of your screen and copy the text in it. Recognition runs entirel
 
 TextPicker isn't notarized by Apple yet, which is why macOS asks. See the [README](https://github.com/georgiansarghi/TextPicker#install) for details.
 
-### What's new in 0.12.0
+### What's new in 0.12.1
 
-- **Permissions now survive updates.** Releases are signed with a stable certificate, so future updates no longer ask for Screen Recording and Accessibility again.
-- **About TextPicker** and **Check for Updates…** in the menu. Checking opens this page in your browser; TextPicker still makes no network connections.
-- TextPicker is now MIT-licensed.
+- **Simpler permissions window.** Shorter text, one button per permission, and a clear checkmark once access is granted.
+- **Selections that are too large no longer break recognition.** You'll see "Try selecting a smaller area", and the next capture works right away instead of needing **Retry OCR Engine**.
+- **Captures can start at the very top of the screen**, including on menu bar text. Previously, the selection was cancelled, or jumped to a display above.
