@@ -102,7 +102,6 @@ Tensor conv(const Tensor &x, const float *weight, const float *bias, int oc, int
     // Bound packing memory. Tile spatial columns instead of materializing all im2col.
     constexpr int tile = 1024;
     std::vector<float> packed(pointwise ? 0 : elements({k, std::min(op, tile)}));
-    std::vector<int> ys(pointwise ? 0 : tile), xs(pointwise ? 0 : tile);
     for (int b = 0; b < n; ++b)
         for (int g = 0; g < groups; ++g) {
             const float *src = x.data.data() + (b * ic + g * icg) * ip;
@@ -114,20 +113,37 @@ Tensor conv(const Tensor &x, const float *weight, const float *bias, int oc, int
             } else
                 for (int start = 0; start < op; start += tile) {
                     int count = std::min(tile, op - start);
-                    for (int j = 0; j < count; ++j) {
-                        int p = start + j;
-                        ys[j] = (p / ow) * sh - ph;
-                        xs[j] = (p % ow) * sw - pw;
-                    }
                     parallel_for(k, size_t(k) * count, [&](size_t begin, size_t end) {
                         for (size_t row = begin; row < end; ++row) {
                             int c = int(row) / (kh * kw), ky = (int(row) / kw) % kh, kx = int(row) % kw;
+                            const float *plane = src + c * ip;
                             float *out = packed.data() + row * count;
-                            for (int j = 0; j < count; ++j) {
-                                int iy = ys[j] + ky, ix = xs[j] + kx;
-                                out[j] = (iy >= 0 && iy < ih && ix >= 0 && ix < iw)
-                                             ? src[c * ip + iy * iw + ix]
-                                             : 0.f;
+                            // Output columns [lo, hi) read inside the input row. Copy each
+                            // output-row segment and zero only its padded borders; the packed
+                            // values are identical to a per-element bounds check.
+                            int lo = std::max(0, (pw - kx + sw - 1) / sw);
+                            int hi = std::min(ow, (iw + pw - kx + sw - 1) / sw);
+                            for (int j = 0; j < count;) {
+                                int p = start + j, oy = p / ow, ox = p % ow, n = std::min(count - j, ow - ox);
+                                int iy = oy * sh - ph + ky;
+                                float *dst = out + j;
+                                if (iy < 0 || iy >= ih) {
+                                    std::fill(dst, dst + n, 0.f);
+                                } else {
+                                    // Valid columns a..b-1, as offsets into this segment.
+                                    int a = std::clamp(lo, ox, ox + n) - ox, b = std::clamp(hi, ox + a, ox + n) - ox;
+                                    std::fill(dst, dst + a, 0.f);
+                                    if (b > a) {
+                                        const float *in = plane + iy * iw + (ox + a) * sw - pw + kx;
+                                        if (sw == 1)
+                                            std::memcpy(dst + a, in, size_t(b - a) * sizeof(float));
+                                        else
+                                            for (int q = 0; q < b - a; ++q)
+                                                dst[a + q] = in[q * sw];
+                                    }
+                                    std::fill(dst + b, dst + n, 0.f);
+                                }
+                                j += n;
                             }
                         }
                     });
