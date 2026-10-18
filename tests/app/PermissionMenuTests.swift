@@ -13,7 +13,10 @@ struct PermissionMenuTests {
             let keepAlive = Timer(timeInterval: 0.01, repeats: true) { _ in }
             RunLoop.main.add(keepAlive, forMode: mode)
             defer { keepAlive.invalidate() }
-            while Date() < deadline { _ = RunLoop.main.run(mode: mode, before: deadline) }
+            // Run at least once: a descheduled thread can wake after the deadline.
+            repeat {
+                _ = RunLoop.main.run(mode: mode, before: max(deadline, Date().addingTimeInterval(0.001)))
+            } while Date() < deadline
         }
         var access = CaptureAccess(), reads = 0, requests: [CapturePermission] = [], opened: [URL] = []
         var settingsWorks = true

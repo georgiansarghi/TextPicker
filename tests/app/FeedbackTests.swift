@@ -5,7 +5,12 @@ struct FeedbackTests {
     @MainActor static func main() {
         var checks = 0
         func check(_ value: @autoclosure () -> Bool, _ message: String = "", line: UInt = #line) {
-            checks += 1; precondition(value(), "Failed feedback check at line \(line): \(message)")
+            checks += 1
+            // -O builds drop precondition messages; print the line so CI logs show it.
+            guard value() else {
+                FileHandle.standardError.write(Data("Failed feedback check at line \(line): \(message)\n".utf8))
+                exit(1)
+            }
         }
         let domain = "TextPicker-feedback-tests-\(UUID().uuidString)"
         let defaults = UserDefaults(suiteName: domain)!
@@ -52,7 +57,16 @@ struct FeedbackTests {
             let keepAlive = Timer(timeInterval: 0.01, repeats: true) { _ in }
             RunLoop.main.add(keepAlive, forMode: mode)
             defer { keepAlive.invalidate() }
-            while Date() < deadline { _ = RunLoop.main.run(mode: mode, before: deadline) }
+            // Run at least once: a descheduled thread can wake after the deadline.
+            repeat {
+                _ = RunLoop.main.run(mode: mode, before: max(deadline, Date().addingTimeInterval(0.001)))
+            } while Date() < deadline
+        }
+        // Expected timer effects wait for the state, not a fixed slice: a loaded CI
+        // runner can deschedule this thread past a short deadline before any timer runs.
+        func pump(_ mode: RunLoop.Mode, until done: () -> Bool, timeout: Double = 5) {
+            let deadline = Date().addingTimeInterval(timeout)
+            while !done() && Date() < deadline { pump(mode, seconds: 0.01) }
         }
         for mode in [RunLoop.Mode.default, .eventTracking] {
             var rendered: [CaptureFeedback] = []
@@ -70,7 +84,7 @@ struct FeedbackTests {
 
             toast.show(.reading, after: 0.02)
             check(rendered.isEmpty)
-            pump(mode)
+            pump(mode, until: { !rendered.isEmpty })
             check(rendered == [.reading] && toast.visibleKind == .progress)
             toast.show(.added)
             check(rendered == [.reading, .added] && toast.visibleKind == .success)
@@ -107,7 +121,7 @@ struct FeedbackTests {
             rendered.removeAll()
             toast.suppressRoutineNotifications = false
             toast.show(.copied, duration: 0.02)
-            pump(mode)
+            pump(mode, until: { toast.visibleKind == nil })
             check(rendered == [.copied] && toast.visibleKind == nil, "Automatic dismissal works during menu tracking too")
         }
         var reentrant: Toast!
