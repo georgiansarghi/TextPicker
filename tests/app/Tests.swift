@@ -67,8 +67,11 @@ struct Tests {
         mode=(resources/'mode').read_text()
         if mode=='startup-timeout': time.sleep(5)
         print(json.dumps({'type':'ready','backend':('wrong' if mode=='bad-ready' else backend),'load_ms':1}),flush=True)
+        served=0
         for line in sys.stdin:
             request=json.loads(line)
+            served+=1
+            if mode=='request-error' and served==1: print(json.dumps({'type':'error','id':request['id'],'message':'Selection is too large'}),flush=True); continue
             if mode=='request-timeout': time.sleep(5)
             if mode=='crash': sys.exit(7)
             if mode=='malformed': print('not-json',flush=True); continue
@@ -100,6 +103,25 @@ struct Tests {
             } else {
                 check(failure != nil && !worker.ready, "Worker failure recovery: \(mode)")
             }
+            worker.stop()
+        }
+        // A per-request error must keep the warm process serving later captures.
+        try "request-error".write(to: resources.appendingPathComponent("mode"), atomically: true, encoding: .utf8)
+        do {
+            let worker = OCRWorker(resources: resources, startupTimeout: 0.5, recognitionTimeout: 0.3)
+            var ready = false, result: String?, failure: String?, requestFailure: String?
+            worker.onReady = { _ in ready = true }
+            worker.onResult = { text, _ in result = text }
+            worker.onFailure = { failure = $0 }
+            worker.onRequestFailure = { requestFailure = $0 }
+            worker.start()
+            wait { ready || failure != nil }
+            worker.recognize(temp.appendingPathComponent("fake.png"))
+            wait { requestFailure != nil || failure != nil }
+            check(requestFailure == "Selection is too large" && failure == nil && worker.ready, "Request error keeps worker warm")
+            worker.recognize(temp.appendingPathComponent("fake.png"))
+            wait { result != nil || failure != nil }
+            check(result == "Grüße!" && failure == nil, "Worker serves the next request after a request error")
             worker.stop()
         }
         // A nested tracking loop can run while a main-queue action is still on

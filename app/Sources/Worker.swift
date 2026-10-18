@@ -20,6 +20,8 @@ final class OCRWorker {
     var onReady: ((Double) -> Void)?
     var onResult: ((String, Double) -> Void)?
     var onFailure: ((String) -> Void)?
+    /// One request failed but the process is healthy and stays warm.
+    var onRequestFailure: ((String) -> Void)?
     private let resources: URL
     private let startupTimeout: Double
     private let recognitionTimeout: Double
@@ -147,7 +149,13 @@ final class OCRWorker {
         case "error":
             // Stale IDs must never terminate a newer request.
             if let id = message["id"] as? String, let pendingID, id != pendingID { return }
-            fail(String((message["message"] as? String ?? "OCR failed").prefix(700)))
+            let text = String((message["message"] as? String ?? "OCR failed").prefix(700))
+            // A correlated error (oversized selection, bad image) ends only that
+            // request. Uncorrelated errors mean the process itself is broken.
+            if ready, let id = message["id"] as? String, id == pendingID {
+                timer?.invalidate(); timer = nil; pendingID = nil
+                onRequestFailure?(text)
+            } else { fail(text) }
         default: fail("Unknown OCR worker response")
         }
     }

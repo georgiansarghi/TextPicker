@@ -59,6 +59,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         }
         worker.onResult = { [weak self] text, milliseconds in self?.complete(text: text, ocrMS: milliseconds) }
         worker.onFailure = { [weak self] message in self?.fail(message) }
+        worker.onRequestFailure = { [weak self] message in self?.fail(message, stopWorker: false) }
         capture.onSelecting = { [weak self] in self?.phase = .selecting; self?.refreshMenu() }
         capture.onCapturing = { [weak self] in
             self?.selectionFinishedAt = ProcessInfo.processInfo.systemUptime
