@@ -34,6 +34,14 @@ struct SelectionTests {
         precondition(selectionRect(from: CGPoint(x: 50, y: 40), to: CGPoint(x: 500, y: 500), bounds: frame) == CGRect(x: 50, y: 40, width: 350, height: 200))
         precondition(appKitPoint(CGPoint(x: -100, y: 50), mainDisplayHeight: 900) == CGPoint(x: -100, y: 850))
         precondition(appKitPoint(CGPoint(x: 200, y: -100), mainDisplayHeight: 900) == CGPoint(x: 200, y: 1000))
+        // Quartz y=0 (top row of the main display) must hit the main screen, not
+        // fall outside it or onto a display stacked above it.
+        let main = CGRect(x: 0, y: 0, width: 1440, height: 900), above = CGRect(x: 0, y: 900, width: 1440, height: 900)
+        let top = screenHitPoint(appKitPoint(CGPoint(x: 10, y: 0), mainDisplayHeight: 900))
+        precondition(main.contains(top) && !above.contains(top))
+        let bottom = screenHitPoint(appKitPoint(CGPoint(x: 10, y: 899), mainDisplayHeight: 900))
+        precondition(main.contains(bottom))
+        precondition(above.contains(screenHitPoint(appKitPoint(CGPoint(x: 10, y: -1), mainDisplayHeight: 900))))
         let layout = DisplayLayoutEntry(id: 1, frame: frame, scale: 2)
         precondition(layout == DisplayLayoutEntry(id: 1, frame: frame, scale: 2))
         precondition(layout != DisplayLayoutEntry(id: 1, frame: frame, scale: 1))

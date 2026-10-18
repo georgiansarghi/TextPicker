@@ -51,6 +51,11 @@ final class SelectionView: NSView {
 func appKitPoint(_ point: CGPoint, mainDisplayHeight: CGFloat) -> CGPoint {
     CGPoint(x: point.x, y: mainDisplayHeight - point.y)
 }
+/// A flipped Quartz row lands on its pixel's top edge, which AppKit frames exclude
+/// (Quartz y=0 becomes the main screen's maxY). Hit-test the pixel's interior.
+func screenHitPoint(_ point: CGPoint) -> CGPoint {
+    CGPoint(x: point.x, y: point.y - 0.5)
+}
 func selectionRect(from origin: CGPoint, to point: CGPoint, bounds: CGRect) -> CGRect {
     CGRect(x: min(origin.x, point.x), y: min(origin.y, point.y),
            width: abs(point.x - origin.x), height: abs(point.y - origin.y)).intersection(bounds)
@@ -113,7 +118,7 @@ final class CaptureController {
     private func updatePointer(_ point: CGPoint) {
         for overlay in overlays {
             let frame = overlay.screen.frame
-            overlay.view.pointer = frame.contains(point) ? CGPoint(x: point.x - frame.minX, y: point.y - frame.minY) : nil
+            overlay.view.pointer = frame.contains(screenHitPoint(point)) ? CGPoint(x: point.x - frame.minX, y: point.y - frame.minY) : nil
         }
     }
     private func handle(_ action: CaptureInputState.Action, quartzPoint: CGPoint) {
@@ -121,7 +126,7 @@ final class CaptureController {
         let point = appKitPoint(quartzPoint, mainDisplayHeight: mainDisplayHeight)
         updatePointer(point)
         if action == .down {
-            dragIndex = overlays.firstIndex { $0.screen.frame.contains(point) }
+            dragIndex = overlays.firstIndex { $0.screen.frame.contains(screenHitPoint(point)) }
             origin = point
             for overlay in overlays { overlay.view.selection = .zero }
             Diagnostics.shared.trace("Selection mouse-down intercepted")
