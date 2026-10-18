@@ -87,6 +87,15 @@ jobs:
           mkdir -p .build/reports
           set -o pipefail
           bash scripts/test.sh 2>&1 | tee .build/reports/ci.log
+      - name: Benchmark OCR against the latest release
+        env:
+          IS_RELEASE_TAG: ${{ startsWith(github.ref, 'refs/tags/v') }}
+        run: |
+          # Paired, interleaved runs on this runner; only release tags enforce the budget.
+          BUDGET=()
+          if [ "$IS_RELEASE_TAG" = true ]; then BUDGET=(--max-regression 15); fi
+          .venv/bin/python -B scripts/bench.py .build/apps/TextPicker.app --baseline release:latest \
+            "${BUDGET[@]}" --output .build/reports/bench.json --summary "$GITHUB_STEP_SUMMARY"
       - name: Archive the exact qualified app
         run: .venv/bin/python -B scripts/release_archive.py
       - name: Upload release candidate

@@ -31,6 +31,26 @@ Sanitizers instrument the native implementation, not third-party OpenCV.
 writes to `.build/generated-fixtures/` by default; font/OS changes must not silently
 replace the golden PNGs or expected outputs.
 
+## Performance
+
+`scripts/bench.py` times the bundled OCR worker on the fixture corpus plus two
+deterministic screen-sized composites (1600×1000 and 2560×1440). With
+`--baseline`, it alternates requests between two builds on the same machine, so
+background load affects both equally, and reports per-workload ratios, the
+geometric-mean ratio and any change in recognized text.
+
+```sh
+.venv/bin/python -B scripts/bench.py .build/apps/TextPicker.app --baseline release:latest
+.venv/bin/python -B scripts/bench.py .build/apps/TextPicker.app --baseline ~/Applications/TextPicker.app \
+  --require-identical
+```
+
+A baseline is an `.app`, a release ZIP or `release:<tag|latest>` (downloaded and
+checked against its `SHA256SUMS.txt`). `--max-regression PERCENT` fails a slower
+candidate; CI uses 15% on release tags. Identical builds measure within a few
+percent of each other on a busy M1, so treat smaller differences as noise and use
+more `--rounds` to settle them.
+
 ## Reference data
 
 `native/tests/reference.json` preserves exact text, preprocessing/crop/batch

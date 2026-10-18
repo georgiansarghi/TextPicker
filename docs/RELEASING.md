@@ -39,6 +39,9 @@ available. This avoids an initial build racing a missing download.
    Get explicit approval of the title and notes.
 2. Commit and push the reviewed changes to `main`; require the complete CI job
    to pass. Perform relevant manual capture/display checks separately.
+   Check the job's **OCR benchmark** summary against the latest release. Release
+   tags fail if OCR is more than 15% slower overall; a deliberate trade-off needs
+   explicit approval and a note in the release text.
 3. Push a version tag matching the plist and release configuration, e.g.
    `v0.11.0`. The tag workflow builds/tests that exact source commit.
 4. The publish job verifies the downloaded artifact, checksums, tag and commit,
